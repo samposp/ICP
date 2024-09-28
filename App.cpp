@@ -1,6 +1,13 @@
 
+// C++ 
 #include <iostream>
-#include <opencv2/opencv.hpp>
+#include <chrono>
+#include <stack>
+#include <random>
+#include <numeric>
+
+// OpenCV 
+#include <opencv2\opencv.hpp>
 
 class App {
 public:
@@ -13,6 +20,7 @@ public:
     cv::Mat readImage(std::string filepath);
     void drawCrossNormalized(cv::Mat& img, cv::Point2f center_relative, int size);
     cv::Point2f getCentroidNormalized(cv::Mat frame, bool binaryImage);
+    cv::Point2f centroidNonzero(cv::Mat& scene, cv::Scalar& lower_threshold, cv::Scalar& upper_threshold);
 
     ~App();
 private:
@@ -43,23 +51,52 @@ bool App::init()
 int App::run(void)
 {
     try {
-        cv::Mat imageBGR, imageGray, imageThreshold;
+        cv::Mat scene;
         
-        imageBGR = readImage("Resource/lightbulb.jpg");
+        scene = readImage("Resource/hsv-map.png");
 
-        cv::cvtColor(imageBGR, imageGray, cv::COLOR_BGR2GRAY);
-
-        cv::Scalar lowerThreshold = cv::Scalar(245);
-        cv::Scalar upperThreshold = cv::Scalar(255);
-
-        cv::inRange(imageGray, lowerThreshold, upperThreshold, imageThreshold);
-
-        cv::Point2f centroid = getCentroidNormalized(imageThreshold, true);
+        cv::namedWindow("scene", 0);
+        cv::imshow("scene", scene);
         
-        drawCrossNormalized(imageBGR, centroid, 30);
+        int hm = 0, sm = 0, vm = 0, hx = 179, sx = 255, vx = 255;
+        cv::createTrackbar("HMin", "scene", &hm, 179);
+        cv::createTrackbar("SMin", "scene", &sm, 255);
+        cv::createTrackbar("VMin", "scene", &vm, 255);
+        cv::createTrackbar("HMax", "scene", &hx, 179);
+        cv::createTrackbar("SMax", "scene", &sx, 255);
+        cv::createTrackbar("VMax", "scene", &vx, 255);
 
-        cv::namedWindow("image");
-        cv::imshow("image", imageBGR);
+        cv::Scalar lower_threshold;
+        cv::Scalar upper_threshold;
+        do {
+            // Get current positions of trackbars
+            // HSV ranges between (0-179, 0-255, 0-255).
+            lower_threshold = cv::Scalar(
+                cv::getTrackbarPos("HMin", "scene"),
+                cv::getTrackbarPos("SMin", "scene"),
+                cv::getTrackbarPos("VMin", "scene"));
+
+            upper_threshold = cv::Scalar(
+                cv::getTrackbarPos("HMax", "scene"),
+                cv::getTrackbarPos("SMax", "scene"),
+                cv::getTrackbarPos("VMax", "scene"));
+
+            // compute centroid 
+            auto start = std::chrono::system_clock::now();
+            auto centroid = App::centroidNonzero(scene, lower_threshold, upper_threshold);
+            auto end = std::chrono::system_clock::now();
+            std::chrono::duration<double> elapsed_seconds = end - start;
+            std::cout << "elapsed time: " << elapsed_seconds.count() << " sec" << std::endl;
+            std::cout << "found relative: " << centroid << std::endl;
+
+            //display result
+            cv::Mat scene_cross;
+            scene.copyTo(scene_cross);
+            drawCrossNormalized(scene_cross, centroid, 30);
+            cv::imshow("scene", scene_cross);
+
+
+        } while (cv::waitKey(1) != 27); //message loop with 1ms delay untill ESC
 
         keepOpen();
     }
@@ -132,4 +169,31 @@ cv::Point2f App::getCentroidNormalized(cv::Mat frame, bool binaryImage = false) 
     centroid.x /= frame.cols;
     centroid.y /= frame.rows;
     return centroid;
+}
+
+cv::Point2f App::centroidNonzero(cv::Mat& scene, cv::Scalar& lower_threshold, cv::Scalar& upper_threshold)
+{
+    cv::Mat scene_hsv;
+    cv::cvtColor(scene, scene_hsv, cv::COLOR_BGR2HSV);
+
+    cv::Mat scene_threshold;
+    cv::inRange(scene_hsv, lower_threshold, upper_threshold, scene_threshold);
+
+    cv::namedWindow("scene_threshold", 0);
+    cv::imshow("scene_threshold", scene_threshold);
+
+    std::vector<cv::Point> whitePixels;
+    cv::findNonZero(scene_threshold, whitePixels);
+    int whiteCnt = whitePixels.size();
+
+    cv::Point whiteAccum = std::accumulate(whitePixels.begin(), whitePixels.end(), cv::Point(0.0, 0.0));
+
+    cv::Point2f centroid_relative(0.0f, 0.0f);
+    if (whiteCnt > 0)
+    {
+        cv::Point centroid = { whiteAccum.x / whiteCnt, whiteAccum.y / whiteCnt };
+        centroid_relative = { static_cast<float>(centroid.x) / scene.cols, static_cast<float>(centroid.y) / scene.rows };
+    }
+
+    return centroid_relative;
 }
