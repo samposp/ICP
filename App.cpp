@@ -24,6 +24,8 @@ public:
 
     ~App();
 private:
+    cv::VideoCapture capture;  // global variable, move to app class, protected
+
 };
 
 App::App()
@@ -37,6 +39,24 @@ bool App::init()
 {
     try {
         
+        //open first available camera
+        capture = cv::VideoCapture(cv::CAP_DSHOW);
+
+        //open video file
+        //capture = cv::VideoCapture("Resource/video.mkv");
+
+        if (!capture.isOpened())
+        {
+            std::cerr << "no source?" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        else
+        {
+            std::cout << "Source: " <<
+                ": width=" << capture.get(cv::CAP_PROP_FRAME_WIDTH) <<
+                ", height=" << capture.get(cv::CAP_PROP_FRAME_HEIGHT) << '\n';
+        }
+
     }
     catch (std::exception const& e) {
         std::cerr << "Init failed : " << e.what() << std::endl;
@@ -51,26 +71,33 @@ bool App::init()
 int App::run(void)
 {
     try {
-        cv::Mat scene;
+        cv::Mat scene, frame;
         
         scene = readImage("Resource/hsv-map.png");
 
         cv::namedWindow("scene", 0);
-        cv::imshow("scene", scene);
         
-        int hm = 0, sm = 0, vm = 0, hx = 179, sx = 255, vx = 255;
-        cv::createTrackbar("HMin", "scene", &hm, 179);
+        int hm = 128, sm = 128, vm = 128, hx = 255, sx = 255, vx = 255;
+        cv::createTrackbar("HMin", "scene", &hm, 255);
         cv::createTrackbar("SMin", "scene", &sm, 255);
         cv::createTrackbar("VMin", "scene", &vm, 255);
-        cv::createTrackbar("HMax", "scene", &hx, 179);
+        cv::createTrackbar("HMax", "scene", &hx, 255);
         cv::createTrackbar("SMax", "scene", &sx, 255);
         cv::createTrackbar("VMax", "scene", &vx, 255);
 
         cv::Scalar lower_threshold;
         cv::Scalar upper_threshold;
-        do {
+        while (1)
+        {
+            capture.read(frame);
+            if (frame.empty())
+            {
+                std::cerr << "Cam disconnected? End of file?\n";
+                break;
+            }
+
             // Get current positions of trackbars
-            // HSV ranges between (0-179, 0-255, 0-255).
+            // HSV ranges between (0-255, 0-255, 0-255).
             lower_threshold = cv::Scalar(
                 cv::getTrackbarPos("HMin", "scene"),
                 cv::getTrackbarPos("SMin", "scene"),
@@ -79,26 +106,27 @@ int App::run(void)
             upper_threshold = cv::Scalar(
                 cv::getTrackbarPos("HMax", "scene"),
                 cv::getTrackbarPos("SMax", "scene"),
-                cv::getTrackbarPos("VMax", "scene"));
+                cv::getTrackbarPos("VMax", "scene"));            
 
-            // compute centroid 
-            auto start = std::chrono::system_clock::now();
-            auto centroid = App::centroidNonzero(scene, lower_threshold, upper_threshold);
-            auto end = std::chrono::system_clock::now();
-            std::chrono::duration<double> elapsed_seconds = end - start;
-            std::cout << "elapsed time: " << elapsed_seconds.count() << " sec" << std::endl;
-            std::cout << "found relative: " << centroid << std::endl;
+            cv::Mat scene_hsv, scene_threshold;
 
-            //display result
-            cv::Mat scene_cross;
-            scene.copyTo(scene_cross);
-            drawCrossNormalized(scene_cross, centroid, 30);
-            cv::imshow("scene", scene_cross);
+            cv::cvtColor(frame, scene_hsv, cv::COLOR_BGR2HSV);
 
+            cv::Scalar lower_threshold = cv::Scalar(hm, sm, vm);
+            cv::Scalar upper_threshold = cv::Scalar(hx, sx, vx);
+            cv::inRange(scene_hsv, lower_threshold, upper_threshold, scene_threshold);
 
-        } while (cv::waitKey(1) != 27); //message loop with 1ms delay untill ESC
+            cv::Point2f centroid = getCentroidNormalized(scene_threshold, true);
+            drawCrossNormalized(frame, centroid, 30);
 
-        keepOpen();
+            cv::imshow("grabbed", frame);
+            cv::imshow("threshold", scene_threshold);
+
+            if (cv::waitKey(1) == 27)
+                break;
+        }
+
+        return EXIT_SUCCESS;
     }
     catch (std::exception const& e) {
         std::cerr << "App failed : " << e.what() << std::endl;
