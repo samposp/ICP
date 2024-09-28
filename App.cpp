@@ -21,11 +21,12 @@ public:
     void drawCrossNormalized(cv::Mat& img, cv::Point2f center_relative, int size);
     cv::Point2f getCentroidNormalized(cv::Mat frame, bool binaryImage);
     cv::Point2f centroidNonzero(cv::Mat& scene, cv::Scalar& lower_threshold, cv::Scalar& upper_threshold);
+    cv::Point2f findFace(cv::Mat& frame);
 
     ~App();
 private:
-    cv::VideoCapture capture;  // global variable, move to app class, protected
-
+    cv::VideoCapture capture;
+    cv::CascadeClassifier faceCascade = cv::CascadeClassifier("resources/haarcascade_frontalface_default.xml");
 };
 
 App::App()
@@ -41,9 +42,6 @@ bool App::init()
         
         //open first available camera
         capture = cv::VideoCapture(cv::CAP_DSHOW);
-
-        //open video file
-        //capture = cv::VideoCapture("Resource/video.mkv");
 
         if (!capture.isOpened())
         {
@@ -71,60 +69,33 @@ bool App::init()
 int App::run(void)
 {
     try {
-        cv::Mat scene, frame;
+        cv::Mat frame;
         
-        scene = readImage("Resource/hsv-map.png");
+        do {
+            auto start = std::chrono::steady_clock::now();
 
-        cv::namedWindow("scene", 0);
-        
-        int hm = 128, sm = 128, vm = 128, hx = 255, sx = 255, vx = 255;
-        cv::createTrackbar("HMin", "scene", &hm, 255);
-        cv::createTrackbar("SMin", "scene", &sm, 255);
-        cv::createTrackbar("VMin", "scene", &vm, 255);
-        cv::createTrackbar("HMax", "scene", &hx, 255);
-        cv::createTrackbar("SMax", "scene", &sx, 255);
-        cv::createTrackbar("VMax", "scene", &vx, 255);
-
-        cv::Scalar lower_threshold;
-        cv::Scalar upper_threshold;
-        while (1)
-        {
             capture.read(frame);
             if (frame.empty())
             {
-                std::cerr << "Cam disconnected? End of file?\n";
-                break;
+                std::cerr << "Cam disconnected? End of video?" << std::endl;
+                return -1;
             }
 
-            // Get current positions of trackbars
-            // HSV ranges between (0-255, 0-255, 0-255).
-            lower_threshold = cv::Scalar(
-                cv::getTrackbarPos("HMin", "scene"),
-                cv::getTrackbarPos("SMin", "scene"),
-                cv::getTrackbarPos("VMin", "scene"));
+            // find face
+            cv::Point2f center = findFace(frame);
 
-            upper_threshold = cv::Scalar(
-                cv::getTrackbarPos("HMax", "scene"),
-                cv::getTrackbarPos("SMax", "scene"),
-                cv::getTrackbarPos("VMax", "scene"));            
+            //display result
+            cv::Mat scene_cross;
+            frame.copyTo(scene_cross);
+            drawCrossNormalized(scene_cross, center, 30);
+            cv::imshow("scene", scene_cross);
 
-            cv::Mat scene_hsv, scene_threshold;
+            auto end = std::chrono::steady_clock::now();
 
-            cv::cvtColor(frame, scene_hsv, cv::COLOR_BGR2HSV);
+            std::chrono::duration<double> elapsed_seconds = end - start;
+            std::cout << "elapsed time: " << elapsed_seconds.count() << "sec" << std::endl;
 
-            cv::Scalar lower_threshold = cv::Scalar(hm, sm, vm);
-            cv::Scalar upper_threshold = cv::Scalar(hx, sx, vx);
-            cv::inRange(scene_hsv, lower_threshold, upper_threshold, scene_threshold);
-
-            cv::Point2f centroid = getCentroidNormalized(scene_threshold, true);
-            drawCrossNormalized(frame, centroid, 30);
-
-            cv::imshow("grabbed", frame);
-            cv::imshow("threshold", scene_threshold);
-
-            if (cv::waitKey(1) == 27)
-                break;
-        }
+        } while (cv::pollKey() != 27); //message loop untill ESC
 
         return EXIT_SUCCESS;
     }
@@ -224,4 +195,26 @@ cv::Point2f App::centroidNonzero(cv::Mat& scene, cv::Scalar& lower_threshold, cv
     }
 
     return centroid_relative;
+}
+
+cv::Point2f App::findFace(cv::Mat& frame)
+{
+    cv::Point2f center(0.0f, 0.0f);
+
+    cv::Mat scene_grey;
+    cv::cvtColor(frame, scene_grey, cv::COLOR_BGR2GRAY);
+
+    std::vector<cv::Rect> faces;
+    faceCascade.detectMultiScale(scene_grey, faces);
+
+    if (faces.size() > 0)
+    {
+        // compute "center" as normalized coordinates of the face  
+        center.x = (float)(faces[0].x + (faces[0].width/2)) / (float)frame.cols;
+        center.y = (float)(faces[0].y + (faces[0].height/2)) / (float)frame.rows;
+    }
+
+    std::cout << "found normalized center: " << center << std::endl;
+
+    return center;
 }
