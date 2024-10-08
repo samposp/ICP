@@ -21,6 +21,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
+    <None Include="resources\video.mkv">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resource\lightbulb.jpg">
@@ -29,5 +32,13 @@
     <Image Include="Resource\HSV-MAP.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="resources\red_cup.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="resources\haarcascade_frontalface_default.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

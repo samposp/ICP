@@ -5,6 +5,8 @@
 #include <stack>
 #include <random>
 #include <numeric>
+#include <thread>
+#include <mutex>
 
 // OpenCV 
 #include <opencv2\opencv.hpp>
@@ -22,16 +24,21 @@ public:
     cv::Point2f getCentroidNormalized(cv::Mat frame, bool binaryImage);
     cv::Point2f centroidNonzero(cv::Mat& scene, cv::Scalar& lower_threshold, cv::Scalar& upper_threshold);
     cv::Point2f findFace(cv::Mat& frame);
+    void captureAndFindFace(cv::Mat& frame, cv::Point2f& faceCenter);
 
     ~App();
 private:
     cv::VideoCapture capture;
     cv::CascadeClassifier faceCascade = cv::CascadeClassifier("resources/haarcascade_frontalface_default.xml");
+    std::mutex findFaceMutex;
+    std::thread findFaceThread;
+    std::atomic<bool> cameraRunning = false;
+    std::atomic<bool> appClosed = false;
 };
 
 App::App()
 {
-    std::cout << "Constructed...\n";
+    std::cout << "Constructed\n";
 }
 
 //============================== INIT =========================================
@@ -50,6 +57,7 @@ bool App::init()
         }
         else
         {
+            cameraRunning = true;
             std::cout << "Source: " <<
                 ": width=" << capture.get(cv::CAP_PROP_FRAME_WIDTH) <<
                 ", height=" << capture.get(cv::CAP_PROP_FRAME_HEIGHT) << '\n';
@@ -69,45 +77,59 @@ bool App::init()
 int App::run(void)
 {
     try {
+         //std::scoped_lock 
+         //std::unique_lock
+
         cv::Mat frame;
+        cv::Mat scene_cross;
+        cv::Point2f faceCenter;
+        cv::Point2f cameraFaceCenter;
+
+        findFaceThread = std::thread(&App::captureAndFindFace, this, std::ref(frame), std::ref(cameraFaceCenter));
+
         
         do {
             auto start = std::chrono::steady_clock::now();
 
-            capture.read(frame);
-            if (frame.empty())
-            {
-                std::cerr << "Cam disconnected? End of video?" << std::endl;
-                return -1;
+            if (!cameraRunning) {
+                std::cerr << "Camera Stopped\n";
+                findFaceThread.join();
+                return EXIT_FAILURE;
             }
 
-            // find face
-            cv::Point2f center = findFace(frame);
+            {
+                std::scoped_lock lk(findFaceMutex);
+                frame.copyTo(scene_cross);
+                faceCenter.x = cameraFaceCenter.x;
+                faceCenter.y = cameraFaceCenter.y;
+            }
 
             //display result
-            cv::Mat scene_cross;
-            frame.copyTo(scene_cross);
-            drawCrossNormalized(scene_cross, center, 30);
-            cv::imshow("scene", scene_cross);
+            if (!scene_cross.empty()) {
+                drawCrossNormalized(scene_cross, faceCenter, 30);
+                cv::imshow("scene", scene_cross);
+            }
 
             auto end = std::chrono::steady_clock::now();
 
             std::chrono::duration<double> elapsed_seconds = end - start;
             std::cout << "elapsed time: " << elapsed_seconds.count() << "sec" << std::endl;
 
-        } while (cv::pollKey() != 27); //message loop untill ESC
 
+        } while (cv::pollKey() != 27); //message loop untill ESC
+        appClosed = true;
+        findFaceThread.join();
         return EXIT_SUCCESS;
     }
     catch (std::exception const& e) {
         std::cerr << "App failed : " << e.what() << std::endl;
+        appClosed = true;
+        findFaceThread.join();
         return EXIT_FAILURE;
     }
-
-    std::cout << "Finished OK...\n";
-    return EXIT_SUCCESS;
 }
 
+//============================ DESTRUCTOR =================================
 App::~App()
 {
     cv::destroyAllWindows();
@@ -126,22 +148,41 @@ int main()
 
 // ====================== HELPER FUNCTIONS =================================
 
+void App::captureAndFindFace(cv::Mat& frame, cv::Point2f& faceCenter) {
+
+    {
+        cv::Mat cameraFrame;
+        cv::Point2f cameraFaceCenter;
+
+        while (true) {
+            capture.read(cameraFrame);            
+            if (cameraFrame.empty())
+            {
+                cameraRunning = false;
+                return;
+            }
+            if (appClosed)
+                return;
+
+            cameraFaceCenter = findFace(cameraFrame);
+
+            {
+                std::scoped_lock lk(findFaceMutex);
+                cameraFrame.copyTo(frame);
+                faceCenter.x = cameraFaceCenter.x;
+                faceCenter.y = cameraFaceCenter.y;
+            }
+        }
+    }
+
+}
+
 cv::Mat App::readImage(std::string filepath) {
     cv::Mat frame = cv::imread(filepath);  //can be JPG,PNG,GIF,TIFF,...
 
     if (frame.empty())
         throw std::exception("Empty file? Wrong path?");
     return frame;
-}
-
-void App::keepOpen() {
-    // keep application open until ESC is pressed
-    while (true)
-    {
-        int key = cv::pollKey(); // poll OS events (key press, mouse move, ...)
-        if (key == 27) // test for ESC key
-            break;
-    }
 }
 
 void App::drawCrossNormalized(cv::Mat& img, cv::Point2f center_normalized, int size)
@@ -213,8 +254,6 @@ cv::Point2f App::findFace(cv::Mat& frame)
         center.x = (float)(faces[0].x + (faces[0].width/2)) / (float)frame.cols;
         center.y = (float)(faces[0].y + (faces[0].height/2)) / (float)frame.rows;
     }
-
-    std::cout << "found normalized center: " << center << std::endl;
 
     return center;
 }
