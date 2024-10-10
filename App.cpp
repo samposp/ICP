@@ -18,13 +18,14 @@ public:
     bool init(void);
     int run(void);
 
-    std::vector<uchar> lossy_bw_limit(cv::Mat& input_img, size_t size_limit);
+    cv::Mat lossy_bw_limit(cv::Mat& input_img, double psnr);
     cv::Mat readImage(std::string filepath);
     void drawCrossNormalized(cv::Mat& img, cv::Point2f center_relative, int size);
     cv::Point2f getCentroidNormalized(cv::Mat frame, bool binaryImage);
     cv::Point2f centroidNonzero(cv::Mat& scene, cv::Scalar& lower_threshold, cv::Scalar& upper_threshold);
     cv::Point2f findFace(cv::Mat& frame);
     void captureAndFindFace(cv::Mat& frame, cv::Point2f& faceCenter);
+    double getPSNR(const cv::Mat& I1, const cv::Mat& I2);
 
     ~App();
 private:
@@ -77,8 +78,8 @@ bool App::init()
 int App::run(void)
 {
     cv::Mat frame;
-    std::vector<uchar> bytes;
-    float target_coefficient = 0.5f; // used as size-ratio, or quality-coefficient
+    cv::Mat decoded_frame;
+    double target_coefficient = 0.2;
     try {
         while (capture.isOpened())
         {
@@ -90,17 +91,13 @@ int App::run(void)
                 break;
             }
 
-            // encode image with bandwidth limit
-            auto size_uncompressed = frame.elemSize() * frame.total();
-            auto size_compressed_limit = size_uncompressed * target_coefficient;
+
+            
 
             //
             // Encode single image with limitation by bandwidth
             //
-            auto start = std::chrono::steady_clock::now();
-            bytes = lossy_bw_limit(frame, size_compressed_limit); // returns JPG compressed stream for single image
-            auto end = std::chrono::steady_clock::now();
-            std::chrono::duration<double> compressionTime = end - start;
+            decoded_frame = lossy_bw_limit(frame, target_coefficient); // returns JPG compressed stream for single image
 
             //
             // TASK 1: Replace function lossy_bw_limit() - limitation by bandwith - with limitation by quality.
@@ -112,20 +109,6 @@ int App::run(void)
             // (from https://docs.opencv.org/2.4/doc/tutorials/highgui/video-input-psnr-ssim/video-input-psnr-ssim.html#image-similarity-psnr-and-ssim ) 
             //         to estimate quality of the compressed image.
             //
-
-
-            // display compression ratio
-            start = std::chrono::steady_clock::now();
-            auto size_compreessed = bytes.size();
-            end = std::chrono::steady_clock::now();
-            std::chrono::duration<double> decompressionTime = end - start;
-            std::cout << "Size: uncompressed = " << size_uncompressed << ", compressed = " << size_compreessed << ", = " << size_compreessed / (size_uncompressed / 100.0) << " % \n";
-            std::cout << "Time to compress = " << compressionTime.count() << " time to decopmress = " << decompressionTime.count() << std::endl;
-
-            //
-            // decode compressed data
-            //  
-            cv::Mat decoded_frame = cv::imdecode(bytes, cv::IMREAD_ANYCOLOR);
 
             cv::namedWindow("original");
             cv::imshow("original", frame);
@@ -140,17 +123,17 @@ int App::run(void)
                 return EXIT_SUCCESS;
                 break;
             case 'q':
-                target_coefficient *= 2;
+                target_coefficient += 0.005;
                 break;
             case 'a':
-                target_coefficient /= 2;
+                target_coefficient -= 0.005;
                 break;
             default:
                 break;
             }
 
-            target_coefficient = std::clamp(target_coefficient, 0.01f, 1.0f);
-            std::cout << "Target coeff: " << target_coefficient * 100.0f << " %\n";
+            target_coefficient = std::clamp(target_coefficient, 0.01, 1.0);
+            std::cout << "Target coeff: " << target_coefficient*100.0 << "dB \n";
         }
     }
     catch (std::exception const& e) {
@@ -181,7 +164,28 @@ int main()
 
 // ====================== HELPER FUNCTIONS =================================
 
-std::vector<uchar> App::lossy_bw_limit(cv::Mat& input_img, size_t size_limit)
+double App::getPSNR(const cv::Mat& I1, const cv::Mat& I2)
+{
+    cv::Mat s1;
+    absdiff(I1, I2, s1);       // |I1 - I2|
+    s1.convertTo(s1, CV_32F);  // cannot make a square on 8 bits
+    s1 = s1.mul(s1);           // |I1 - I2|^2
+
+    cv::Scalar s = sum(s1);         // sum elements per channel
+
+    double sse = s.val[0] + s.val[1] + s.val[2]; // sum channels
+
+    if (sse <= 1e-10) // for small values return zero
+        return 0;
+    else
+    {
+        double  mse = sse / (double)(I1.channels() * I1.total());
+        double psnr = 10.0 * log10((255 * 255) / mse);
+        return psnr;
+    }
+}
+
+cv::Mat App::lossy_bw_limit(cv::Mat& input_img, double psnr)
 {
     std::string suff(".jpg"); // target format
     if (!cv::haveImageWriter(suff))
@@ -196,23 +200,24 @@ std::vector<uchar> App::lossy_bw_limit(cv::Mat& input_img, size_t size_limit)
     compression_params_template.push_back(cv::IMWRITE_JPEG_QUALITY);
 
     std::cout << '[';
-
+    cv::Mat decoded_frame;
     //try step-by-step to decrease quality by 5%, until it fits into limit
     for (auto i = 100; i > 0; i -= 5) {
         compression_params = compression_params_template; // reset parameters
         compression_params.push_back(i);                  // set desired quality
-        std::cout << i << ',';
-
+        
         // try to encode
         cv::imencode(suff, input_img, bytes, compression_params);
-
+        decoded_frame = cv::imdecode(bytes, cv::IMREAD_ANYCOLOR);
         // check the size limit
-        if (bytes.size() <= size_limit)
+        double actualPSNR = getPSNR(input_img, decoded_frame)/100.0;
+        std::cout <<i << ':' << actualPSNR << ',';
+        if (actualPSNR <= psnr)
             break; // ok, done 
     }
     std::cout << "]\n";
 
-    return bytes;
+    return decoded_frame;
 }
 
 void App::captureAndFindFace(cv::Mat& frame, cv::Point2f& faceCenter) {
