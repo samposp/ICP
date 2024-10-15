@@ -18,6 +18,8 @@ public:
     bool init(void);
     int run(void);
 
+    void lossyEncodeAsync(cv::Mat& frame, cv::Mat& encodeFrame);
+    void captureAsync(cv::Mat& frame);
     cv::Mat lossy_bw_limit(cv::Mat& input_img, double psnr);
     cv::Mat readImage(std::string filepath);
     void drawCrossNormalized(cv::Mat& img, cv::Point2f center_relative, int size);
@@ -31,10 +33,10 @@ public:
 private:
     cv::VideoCapture capture;
     cv::CascadeClassifier faceCascade = cv::CascadeClassifier("resources/haarcascade_frontalface_default.xml");
-    std::mutex findFaceMutex;
-    std::thread findFaceThread;
+    std::mutex mutex;
     std::atomic<bool> cameraRunning = false;
     std::atomic<bool> appClosed = false;
+    std::atomic<double> targetPSNR = 0.2;
 };
 
 App::App()
@@ -47,7 +49,7 @@ App::App()
 bool App::init()
 {
     try {
-        
+
         //open first available camera
         capture = cv::VideoCapture(cv::CAP_DSHOW);
 
@@ -77,71 +79,71 @@ bool App::init()
 
 int App::run(void)
 {
-    cv::Mat frame;
-    cv::Mat decoded_frame;
-    double target_coefficient = 0.2;
-    try {
-        while (capture.isOpened())
-        {
-            capture >> frame;
+    cv::Mat frame, decoded_frame, transfer_frame, encode_transfer_frame;
 
-            if (frame.empty()) {
-                std::cerr << "device closed (or video at the end)" << '\n';
-                capture.release();
+    std::thread captureThread = std::thread(&App::captureAsync, this, std::ref(transfer_frame));
+    std::thread encodeThread = std::thread(&App::lossyEncodeAsync, this, std::ref(transfer_frame), std::ref(encode_transfer_frame));
+
+    try {
+        while (!appClosed)
+        {
+            if (!cameraRunning)
+            {
+                appClosed = true;
+                std::cerr << "Camera stopped\n";
                 break;
             }
+            {
+                std::scoped_lock lock(mutex);
+                encode_transfer_frame.copyTo(decoded_frame);
+                transfer_frame.copyTo(frame);
+            }
 
+            if (!frame.empty())
+            {
+                cv::namedWindow("original");
+                cv::imshow("original", frame);
+            }
 
-            
+            if (!decoded_frame.empty())
+            {
+                cv::namedWindow("decoded");
+                cv::imshow("decoded", decoded_frame);
+            }
 
-            //
-            // Encode single image with limitation by bandwidth
-            //
-            decoded_frame = lossy_bw_limit(frame, target_coefficient); // returns JPG compressed stream for single image
-
-            //
-            // TASK 1: Replace function lossy_bw_limit() - limitation by bandwith - with limitation by quality.
-            //         Implement the function:
-            // bytes = lossy_quality_limit(frame, target_coefficient);
-            // 
-            //         Use PSNR (Peak Signal to Noise Ratio)
-            //         or  SSIM (Structural Similarity) 
-            // (from https://docs.opencv.org/2.4/doc/tutorials/highgui/video-input-psnr-ssim/video-input-psnr-ssim.html#image-similarity-psnr-and-ssim ) 
-            //         to estimate quality of the compressed image.
-            //
-
-            cv::namedWindow("original");
-            cv::imshow("original", frame);
-
-            cv::namedWindow("decoded");
-            cv::imshow("decoded", decoded_frame);
 
             // key handling
             int c = cv::pollKey();
             switch (c) {
             case 27:
+                appClosed = true;
+                std::cout << "Finished OK...\n";
+                captureThread.join();
+                encodeThread.join();
                 return EXIT_SUCCESS;
                 break;
             case 'q':
-                target_coefficient += 0.005;
+                targetPSNR = targetPSNR + 0.005;
                 break;
             case 'a':
-                target_coefficient -= 0.005;
+                targetPSNR = targetPSNR - 0.005;
                 break;
             default:
                 break;
             }
-
-            target_coefficient = std::clamp(target_coefficient, 0.01, 1.0);
-            std::cout << "Target coeff: " << target_coefficient*100.0 << "dB \n";
+            double psnr = targetPSNR;
+            targetPSNR = std::clamp(psnr, 0.01, 1.0);
+            std::cout << "Target coeff: " << targetPSNR * 100.0 << "dB \n";
         }
     }
     catch (std::exception const& e) {
+        appClosed = true;
         std::cerr << "App failed : " << e.what() << std::endl;
+        captureThread.join();
+        encodeThread.join();
         return EXIT_FAILURE;
     }
 
-    std::cout << "Finished OK...\n";
     return EXIT_SUCCESS;
 }
 
@@ -205,19 +207,79 @@ cv::Mat App::lossy_bw_limit(cv::Mat& input_img, double psnr)
     for (auto i = 100; i > 0; i -= 5) {
         compression_params = compression_params_template; // reset parameters
         compression_params.push_back(i);                  // set desired quality
-        
+
         // try to encode
         cv::imencode(suff, input_img, bytes, compression_params);
         decoded_frame = cv::imdecode(bytes, cv::IMREAD_ANYCOLOR);
         // check the size limit
-        double actualPSNR = getPSNR(input_img, decoded_frame)/100.0;
-        std::cout <<i << ':' << actualPSNR << ',';
+        double actualPSNR = getPSNR(input_img, decoded_frame) / 100.0;
+        std::cout << i << ':' << actualPSNR << ',';
         if (actualPSNR <= psnr)
             break; // ok, done 
     }
     std::cout << "]\n";
 
     return decoded_frame;
+}
+
+void App::lossyEncodeAsync(cv::Mat& frame, cv::Mat& encodeFrame)
+{
+    std::string suff(".jpg"); // target format
+    if (!cv::haveImageWriter(suff))
+        throw std::runtime_error("Can not compress to format:" + suff);
+
+    cv::Mat input_img, encoded_frame;
+    std::vector<uchar> bytes;
+    std::vector<int> compression_params;
+
+    // prepare parameters for JPEG compressor
+    // we use only quality, but other parameters are available (progressive, optimization...)
+    std::vector<int> compression_params_template;
+    compression_params_template.push_back(cv::IMWRITE_JPEG_QUALITY);
+
+    while (!appClosed) {
+
+        {
+            std::scoped_lock lock(mutex);
+            frame.copyTo(input_img);
+        }
+
+        //try step-by-step to decrease quality by 5%, until it fits into limit
+        for (auto i = 100; i > 0 && !input_img.empty(); i -= 5) {
+            compression_params = compression_params_template; // reset parameters
+            compression_params.push_back(i);                  // set desired quality
+
+            // try to encode
+            cv::imencode(suff, input_img, bytes, compression_params);
+            encoded_frame = cv::imdecode(bytes, cv::IMREAD_ANYCOLOR);
+            // check the size limit
+            double actualPSNR = getPSNR(input_img, encoded_frame) / 100.0;
+            if (actualPSNR <= targetPSNR)
+                break; // ok, done 
+        }
+
+        {
+            std::scoped_lock lock(mutex);
+            encoded_frame.copyTo(encodeFrame);
+        }
+    }
+}
+
+void App::captureAsync(cv::Mat& frame)
+{
+    cv::Mat cameraFrame;
+    while (!appClosed) {
+        capture.read(cameraFrame);
+        if (cameraFrame.empty())
+        {
+            cameraRunning = false;
+            return;
+        }
+        {
+            std::scoped_lock lk(mutex);
+            cameraFrame.copyTo(frame);
+        }
+    }
 }
 
 void App::captureAndFindFace(cv::Mat& frame, cv::Point2f& faceCenter) {
@@ -227,7 +289,7 @@ void App::captureAndFindFace(cv::Mat& frame, cv::Point2f& faceCenter) {
         cv::Point2f cameraFaceCenter;
 
         while (true) {
-            capture.read(cameraFrame);            
+            capture.read(cameraFrame);
             if (cameraFrame.empty())
             {
                 cameraRunning = false;
@@ -239,7 +301,7 @@ void App::captureAndFindFace(cv::Mat& frame, cv::Point2f& faceCenter) {
             cameraFaceCenter = findFace(cameraFrame);
 
             {
-                std::scoped_lock lk(findFaceMutex);
+                std::scoped_lock lk(mutex);
                 cameraFrame.copyTo(frame);
                 faceCenter.x = cameraFaceCenter.x;
                 faceCenter.y = cameraFaceCenter.y;
@@ -323,8 +385,8 @@ cv::Point2f App::findFace(cv::Mat& frame)
     if (faces.size() > 0)
     {
         // compute "center" as normalized coordinates of the face  
-        center.x = (float)(faces[0].x + (faces[0].width/2)) / (float)frame.cols;
-        center.y = (float)(faces[0].y + (faces[0].height/2)) / (float)frame.rows;
+        center.x = (float)(faces[0].x + (faces[0].width / 2)) / (float)frame.cols;
+        center.y = (float)(faces[0].y + (faces[0].height / 2)) / (float)frame.rows;
     }
 
     return center;
