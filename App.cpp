@@ -36,7 +36,7 @@ private:
     std::mutex mutex;
     std::atomic<bool> cameraRunning = false;
     std::atomic<bool> appClosed = false;
-    std::atomic<double> targetPSNR = 0.2;
+    std::atomic<int> compressionQuality = 50;
 };
 
 App::App()
@@ -99,6 +99,7 @@ int App::run(void)
                 transfer_frame.copyTo(frame);
             }
 
+
             if (!frame.empty())
             {
                 cv::namedWindow("original");
@@ -123,17 +124,18 @@ int App::run(void)
                 return EXIT_SUCCESS;
                 break;
             case 'q':
-                targetPSNR = targetPSNR + 0.005;
+                compressionQuality = compressionQuality + 1;
                 break;
             case 'a':
-                targetPSNR = targetPSNR - 0.005;
+                compressionQuality = compressionQuality - 1;
                 break;
             default:
                 break;
             }
-            double psnr = targetPSNR;
-            targetPSNR = std::clamp(psnr, 0.01, 1.0);
-            std::cout << "Target coeff: " << targetPSNR * 100.0 << "dB \n";
+
+            int compression = compressionQuality;
+            compressionQuality = std::clamp(compression, 0, 100);
+            std::cout << "Compression quality: " << compressionQuality << "% \n";
         }
     }
     catch (std::exception const& e) {
@@ -244,23 +246,20 @@ void App::lossyEncodeAsync(cv::Mat& frame, cv::Mat& encodeFrame)
             frame.copyTo(input_img);
         }
 
-        //try step-by-step to decrease quality by 5%, until it fits into limit
-        for (auto i = 100; i > 0 && !input_img.empty(); i -= 5) {
-            compression_params = compression_params_template; // reset parameters
-            compression_params.push_back(i);                  // set desired quality
 
-            // try to encode
+        compression_params = compression_params_template; // reset parameters
+        compression_params.push_back(compressionQuality);                  // set desired quality
+
+        // try to encode
+        if (!input_img.empty())
+        {
             cv::imencode(suff, input_img, bytes, compression_params);
             encoded_frame = cv::imdecode(bytes, cv::IMREAD_ANYCOLOR);
-            // check the size limit
-            double actualPSNR = getPSNR(input_img, encoded_frame) / 100.0;
-            if (actualPSNR <= targetPSNR)
-                break; // ok, done 
-        }
 
-        {
-            std::scoped_lock lock(mutex);
-            encoded_frame.copyTo(encodeFrame);
+            {
+                std::scoped_lock lock(mutex);
+                encoded_frame.copyTo(encodeFrame);
+            }
         }
     }
 }
