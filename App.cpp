@@ -1,5 +1,6 @@
 
-// C++ 
+// C++
+// include anywhere, in any order
 #include <iostream>
 #include <chrono>
 #include <stack>
@@ -8,8 +9,22 @@
 #include <thread>
 #include <mutex>
 
-// OpenCV 
+// OpenCV (does not depend on GL)
 #include <opencv2\opencv.hpp>
+
+// OpenGL Extension Wrangler: allow all multiplatform GL functions
+#include <GL/glew.h> 
+// WGLEW = Windows GL Extension Wrangler (change for different platform) 
+// platform specific functions (in this case Windows)
+#include <GL/wglew.h> 
+
+// GLFW toolkit
+// Uses GL calls to open GL context, i.e. GLEW __MUST__ be first.
+#include <GLFW/glfw3.h>
+
+// OpenGL math (and other additional GL libraries, at the end)
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 class App {
 public:
@@ -37,6 +52,7 @@ private:
     std::atomic<bool> cameraRunning = false;
     std::atomic<bool> appClosed = false;
     std::atomic<int> compressionQuality = 50;
+    GLFWwindow* window = NULL;
 };
 
 App::App()
@@ -46,9 +62,61 @@ App::App()
 
 //============================== INIT =========================================
 
+
+void error_callback(int error, const char* description)
+{
+    fprintf(stderr, "Error: %s\n", description);
+}
+
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+}
+
 bool App::init()
 {
     try {
+
+        // init glfw
+        // https://www.glfw.org/documentation.html
+        if (!glfwInit())
+            return -1;
+
+        glfwSetErrorCallback(error_callback);
+        
+
+        // open window (GL canvas) with no special properties
+        // https://www.glfw.org/docs/latest/quick.html#quick_create_window
+        window = glfwCreateWindow(800, 600, "OpenGL context", NULL, NULL);
+        if (!window)
+        {
+            glfwTerminate();
+            return -1;
+        }
+
+        glfwSetKeyCallback(window, key_callback);
+        glfwMakeContextCurrent(window);
+
+        GLenum glew_ret;
+        glew_ret = glewInit();
+        if (glew_ret != GLEW_OK) {
+            throw std::runtime_error(std::string("GLEW failed with error: ")
+                + reinterpret_cast<const char*>(glewGetErrorString(glew_ret)));
+        }
+        else {
+            std::cout << "GLEW successfully initialized to version: " << glewGetString(GLEW_VERSION) << std::endl;
+        }
+        // Platform specific init.
+        glew_ret = wglewInit();
+        if (glew_ret != GLEW_OK) {
+            throw std::runtime_error(std::string("WGLEW failed with error: ")
+                + reinterpret_cast<const char*>(glewGetErrorString(glew_ret)));
+        }
+        else {
+            std::cout << "WGLEW successfully initialized platform specific functions." << std::endl;
+        }
+
 
         //open first available camera
         capture = cv::VideoCapture(cv::CAP_DSHOW);
@@ -79,70 +147,21 @@ bool App::init()
 
 int App::run(void)
 {
-    cv::Mat frame, decoded_frame, transfer_frame, encode_transfer_frame;
-
-    std::thread captureThread = std::thread(&App::captureAsync, this, std::ref(transfer_frame));
-    std::thread encodeThread = std::thread(&App::lossyEncodeAsync, this, std::ref(transfer_frame), std::ref(encode_transfer_frame));
+   
 
     try {
-        while (!appClosed)
+        while (!glfwWindowShouldClose(window))
         {
-            if (!cameraRunning)
-            {
-                appClosed = true;
-                std::cerr << "Camera stopped\n";
-                break;
-            }
-            {
-                std::scoped_lock lock(mutex);
-                encode_transfer_frame.copyTo(decoded_frame);
-                transfer_frame.copyTo(frame);
-            }
 
+            glClear(GL_COLOR_BUFFER_BIT);
 
-            if (!frame.empty())
-            {
-                cv::namedWindow("original");
-                cv::imshow("original", frame);
-            }
-
-            if (!decoded_frame.empty())
-            {
-                cv::namedWindow("decoded");
-                cv::imshow("decoded", decoded_frame);
-            }
-
-
-            // key handling
-            int c = cv::pollKey();
-            switch (c) {
-            case 27:
-                appClosed = true;
-                std::cout << "Finished OK...\n";
-                captureThread.join();
-                encodeThread.join();
-                return EXIT_SUCCESS;
-                break;
-            case 'q':
-                compressionQuality = compressionQuality + 1;
-                break;
-            case 'a':
-                compressionQuality = compressionQuality - 1;
-                break;
-            default:
-                break;
-            }
-
-            int compression = compressionQuality;
-            compressionQuality = std::clamp(compression, 0, 100);
-            std::cout << "Compression quality: " << compressionQuality << "% \n";
+            glfwSwapBuffers(window);
+            glfwPollEvents();
         }
     }
     catch (std::exception const& e) {
         appClosed = true;
         std::cerr << "App failed : " << e.what() << std::endl;
-        captureThread.join();
-        encodeThread.join();
         return EXIT_FAILURE;
     }
 
@@ -152,6 +171,9 @@ int App::run(void)
 //============================ DESTRUCTOR =================================
 App::~App()
 {
+    if (window)
+        glfwDestroyWindow(window);
+    glfwTerminate();
     cv::destroyAllWindows();
     std::cout << "Bye...\n";
 }
