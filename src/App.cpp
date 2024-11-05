@@ -26,6 +26,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "gl_err_callback.h"
+
 class App {
 public:
     App();
@@ -117,6 +119,18 @@ bool App::init()
             std::cout << "WGLEW successfully initialized platform specific functions." << std::endl;
         }
 
+        if (GLEW_ARB_debug_output)
+        {
+            glDebugMessageCallback(MessageCallback, 0);
+            glEnable(GL_DEBUG_OUTPUT);
+
+            //default is asynchronous debug output, use this to simulate glGetError() functionality
+            //glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+
+            std::cout << "GL_DEBUG enabled." << std::endl;
+        }
+        else
+            std::cout << "GL_DEBUG NOT SUPPORTED!" << std::endl;
 
         //open first available camera
         capture = cv::VideoCapture(cv::CAP_DSHOW);

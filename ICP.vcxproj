@@ -143,9 +143,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="App.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="README.md" />
     <None Include="resources\video.mkv" />
   </ItemGroup>
@@ -156,6 +153,14 @@
   </ItemGroup>
   <ItemGroup>
     <Xml Include="resources\haarcascade_frontalface_default.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\App.cpp" />
+    <ClCompile Include="src\gl_err_callback.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\App.h" />
+    <ClInclude Include="src\gl_err_callback.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
