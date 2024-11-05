@@ -126,12 +126,20 @@ bool App::init()
 
 int App::run(void)
 {
-   
+    float fps, previous;
     try {
         while (!glfwWindowShouldClose(window))
         {
 
             glClear(GL_COLOR_BUFFER_BIT);
+
+            float current = (float)glfwGetTime();
+            fps = 1.f / (current - previous);
+            previous = current;
+
+            char title[20];
+            snprintf(title, sizeof title, "fps: %f", fps);
+            glfwSetWindowTitle(window, title);
 
             glfwSwapBuffers(window);
             glfwPollEvents();
