@@ -23,10 +23,15 @@ public:
     bool init(void);
     int run(void);
 
+    static void error_callback(int error, const char* description);
+    static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+    static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
     ~App();
 
 private:
     std::mutex mutex;
     std::atomic<bool> appClosed = false;
     GLFWwindow* window = NULL;
+    int vsync = 0;
 };

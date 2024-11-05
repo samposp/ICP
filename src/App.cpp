@@ -20,18 +20,6 @@ App::App()
 
 //============================== INIT =========================================
 
-
-void error_callback(int error, const char* description)
-{
-    fprintf(stderr, "Error: %s\n", description);
-}
-
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GLFW_TRUE);
-}
-
 bool App::init()
 {
     try {
@@ -41,8 +29,6 @@ bool App::init()
         if (!glfwInit())
             return -1;
 
-        glfwSetErrorCallback(error_callback);
-        
 
         // open window (GL canvas) with no special properties
         // https://www.glfw.org/docs/latest/quick.html#quick_create_window
@@ -52,7 +38,11 @@ bool App::init()
             glfwTerminate();
             return -1;
         }
+        
+        glfwSetWindowUserPointer(window, this);
+        glfwSetErrorCallback(error_callback);
 
+        glfwSetScrollCallback(window, scroll_callback);
         glfwSetKeyCallback(window, key_callback);
         glfwMakeContextCurrent(window);
 
@@ -111,7 +101,7 @@ bool App::init()
         else
             std::cout << "GL_DEBUG NOT SUPPORTED!" << std::endl;
 
-
+        glfwSwapInterval(vsync); // Set V-Sync OFF.
 
     }
     catch (std::exception const& e) {
@@ -126,7 +116,8 @@ bool App::init()
 
 int App::run(void)
 {
-    float fps, previous;
+    float fps;
+    float previous = (float)glfwGetTime();
     try {
         while (!glfwWindowShouldClose(window))
         {
@@ -137,8 +128,8 @@ int App::run(void)
             fps = 1.f / (current - previous);
             previous = current;
 
-            char title[20];
-            snprintf(title, sizeof title, "fps: %f", fps);
+            char title[30];
+            snprintf(title, sizeof title, "V-sync: %d, fps: %f", vsync, fps);
             glfwSetWindowTitle(window, title);
 
             glfwSwapBuffers(window);
@@ -162,4 +153,37 @@ App::~App()
     glfwTerminate();
     cv::destroyAllWindows();
     std::cout << "Bye...\n";
+}
+
+//============================= HELPER FUNCTIONS ============================
+void App::error_callback(int error, const char* description) {
+    std::cerr << "Error: " << description << std::endl;
+}
+
+
+void App::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+    if (yoffset > 0.0) {
+        std::cout << "wheel up...\n";
+    }
+}
+
+void App::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    auto this_inst = static_cast<App*>(glfwGetWindowUserPointer(window));
+
+    if ((action == GLFW_PRESS) || (action == GLFW_REPEAT))
+    {
+        switch (key)
+        {
+        case GLFW_KEY_ESCAPE:
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
+            break;
+        case GLFW_KEY_V:
+            this_inst->vsync = this_inst->vsync == 1 ? 0: 1;
+            glfwSwapInterval(this_inst->vsync);
+
+            break;
+        default:
+            break;
+        }
+    }
 }
