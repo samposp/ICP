@@ -73,6 +73,29 @@ bool App::init()
         }
         else {
             std::cout << "WGLEW successfully initialized platform specific functions." << std::endl;
+
+            // get info about GL
+            GLint profile, majorVersion, minorVersion;
+
+            glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
+            if (profile & GL_CONTEXT_CORE_PROFILE_BIT) {
+                std::cout << "We are using CORE profile\n";
+            }
+            else {
+                if (profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) {
+                    std::cout << "We are using COMPATIBILITY profile\n";
+                }
+                else {
+                    throw std::exception("Unknown profile of GL profile\n");
+                }
+            }
+
+            glGetIntegerv(GL_MAJOR_VERSION, &majorVersion);
+            glGetIntegerv(GL_MINOR_VERSION, &minorVersion);
+            if (majorVersion > 4 || (majorVersion == 4 && minorVersion > 6)) {
+                std::cerr << "GL initialized ONLY with version: " << majorVersion << '.' << minorVersion << std::endl;
+            }
+            std::cout << "GL initialized with version: " << majorVersion << '.' << minorVersion << std::endl;
         }
 
         if (GLEW_ARB_debug_output)
