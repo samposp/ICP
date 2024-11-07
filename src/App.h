@@ -34,4 +34,5 @@ private:
     std::atomic<bool> appClosed = false;
     GLFWwindow* window = NULL;
     int vsync = 0;
+    bool show_imgui = true;
 };

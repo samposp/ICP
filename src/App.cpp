@@ -9,6 +9,18 @@
 #include <thread>
 #include <mutex>
 
+#include <opencv2/opencv.hpp>
+#include <GL/glew.h> 
+#include <GL/wglew.h> 
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+// ImGUI headers
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
+
 #include "gl_err_callback.h"
 #include "App.h"
 
@@ -103,6 +115,17 @@ bool App::init()
 
         glfwSwapInterval(vsync); // Set V-Sync OFF.
 
+        if (!GLEW_ARB_direct_state_access)
+            throw std::runtime_error("No DSA :-(");
+
+        // see https://github.com/ocornut/imgui/wiki/Getting-Started
+
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
+        ImGui_ImplOpenGL3_Init();
+        std::cout << "ImGUI version: " << ImGui::GetVersion() << "\n";
+
     }
     catch (std::exception const& e) {
         std::cerr << "Init failed : " << e.what() << std::endl;
@@ -119,21 +142,88 @@ int App::run(void)
     float fps;
     float previous = (float)glfwGetTime();
     try {
+        double now = glfwGetTime();
+        // FPS related
+        double fps_last_displayed = now;
+        int fps_counter_frames = 0;
+        double FPS = 0.0;
+
+        // animation related
+        double frame_begin_timepoint = now;
+        double previous_frame_render_time{};
+        double time_speed{};
+
+        // Clear color saved to OpenGL state machine: no need to set repeatedly in game loop
+        glClearColor(0, 0, 0, 0);
+
         while (!glfwWindowShouldClose(window))
         {
+            // ImGui prepare render (only if required)
+            if (show_imgui) {
+                ImGui_ImplOpenGL3_NewFrame();
+                ImGui_ImplGlfw_NewFrame();
+                ImGui::NewFrame();
+                //ImGui::ShowDemoWindow(); // Enable mouse when using Demo!
+                ImGui::SetNextWindowPos(ImVec2(10, 10));
+                ImGui::SetNextWindowSize(ImVec2(250, 100));
 
-            glClear(GL_COLOR_BUFFER_BIT);
+                ImGui::Begin("Info", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+                ImGui::Text("V-Sync: %s", vsync ? "ON" : "OFF");
+                ImGui::Text("FPS: %.1f", FPS);
+                ImGui::Text("(press RMB to release mouse)");
+                ImGui::Text("(hit D to show/hide info)");
+                ImGui::End();
+            }
 
-            float current = (float)glfwGetTime();
-            fps = 1.f / (current - previous);
-            previous = current;
+            //
+            // UPDATE: recompute object.position = object.position + object.speed * (previous_frame_render_time * time_speed); // s = s0 + v*delta_t
+            //
+            if (show_imgui) {
+                // pause application
+                time_speed = 0.0;
+            }
+            else {
+                // imgui not displayed, run app at normal speed
+                time_speed = 1.0;
+            }
 
-            char title[30];
-            snprintf(title, sizeof title, "V-sync: %d, fps: %f", vsync, fps);
-            glfwSetWindowTitle(window, title);
+            //
+            // RENDER: GL drawCalls
+            // 
 
+            // Clear OpenGL canvas, both color buffer and Z-buffer
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            // drawCalls to render object, scene, ...
+
+
+            // ImGui display
+            if (show_imgui) {
+                ImGui::Render();
+                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            }
+
+            //
+            // SWAP + VSYNC
+            //
             glfwSwapBuffers(window);
+
+            //
+            // POLL
+            //
             glfwPollEvents();
+
+            // Time/FPS measurement
+            now = glfwGetTime();
+            previous_frame_render_time = now - frame_begin_timepoint; //compute delta_t
+            frame_begin_timepoint = now; // set new start
+
+            fps_counter_frames++;
+            if (now - fps_last_displayed >= 1) {
+                FPS = fps_counter_frames / (now - fps_last_displayed);
+                fps_last_displayed = now;
+                fps_counter_frames = 0;
+                std::cout << "\r[FPS]" << FPS << "     "; // Compare: FPS with/without ImGUI
+            }
         }
     }
     catch (std::exception const& e) {
@@ -148,11 +238,20 @@ int App::run(void)
 //============================ DESTRUCTOR =================================
 App::~App()
 {
-    if (window)
-        glfwDestroyWindow(window);
-    glfwTerminate();
+    // clean up ImGUI
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    // clean up OpenCV
     cv::destroyAllWindows();
-    std::cout << "Bye...\n";
+
+    // clean-up GLFW
+    if (window) {
+        glfwDestroyWindow(window);
+        window = nullptr;
+    }
+    glfwTerminate();
 }
 
 //============================= HELPER FUNCTIONS ============================

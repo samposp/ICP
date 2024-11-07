@@ -72,12 +72,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ExecutablePath>$(OPENCV_DIR)\x64\vc16\bin;$(VC_ExecutablePath_x64);$(CommonExecutablePath);$(ProjectDir)bin</ExecutablePath>
-    <IncludePath>$(OPENCV_DIR)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)include</IncludePath>
+    <IncludePath>$(ProjectDir)/imgui-master;$(OPENCV_DIR)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)include</IncludePath>
     <LibraryPath>$(OPENCV_DIR)\x64\vc16\bin;$(OPENCV_DIR)\x64\vc16\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(ProjectDir)lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ExecutablePath>$(OPENCV_DIR)\x64\vc16\bin;$(VC_ExecutablePath_x64);$(CommonExecutablePath);$(ProjectDir)bin</ExecutablePath>
-    <IncludePath>$(OPENCV_DIR)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)include</IncludePath>
+    <IncludePath>$(ProjectDir)/imgui-master;$(OPENCV_DIR)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)include</IncludePath>
     <LibraryPath>$(OPENCV_DIR)\x64\vc16\bin;$(OPENCV_DIR)\x64\vc16\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(ProjectDir)lib</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -155,6 +155,13 @@
     <Xml Include="resources\haarcascade_frontalface_default.xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="imgui-master\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="imgui-master\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="imgui-master\imgui.cpp" />
+    <ClCompile Include="imgui-master\imgui_demo.cpp" />
+    <ClCompile Include="imgui-master\imgui_draw.cpp" />
+    <ClCompile Include="imgui-master\imgui_tables.cpp" />
+    <ClCompile Include="imgui-master\imgui_widgets.cpp" />
     <ClCompile Include="src\App.cpp" />
     <ClCompile Include="src\codec.cpp" />
     <ClCompile Include="src\FaceRecongnition.cpp" />
@@ -163,7 +170,16 @@
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="imgui-master\backends\imgui_impl_glfw.h" />
+    <ClInclude Include="imgui-master\backends\imgui_impl_opengl3.h" />
+    <ClInclude Include="imgui-master\imconfig.h" />
+    <ClInclude Include="imgui-master\imgui.h" />
+    <ClInclude Include="imgui-master\imgui_internal.h" />
+    <ClInclude Include="imgui-master\imstb_rectpack.h" />
+    <ClInclude Include="imgui-master\imstb_textedit.h" />
+    <ClInclude Include="imgui-master\imstb_truetype.h" />
     <ClInclude Include="src\App.h" />
+    <ClInclude Include="src\assets.hpp" />
     <ClInclude Include="src\codec.h" />
     <ClInclude Include="src\FaceRecognition.h" />
     <ClInclude Include="src\gl_err_callback.h" />
