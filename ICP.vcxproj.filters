@@ -79,6 +79,9 @@
     <ClCompile Include="imgui-master\backends\imgui_impl_opengl3.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
+    <ClCompile Include="src\ShaderProgram.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\gl_err_callback.h">
@@ -122,6 +125,9 @@
     </ClInclude>
     <ClInclude Include="imgui-master\backends\imgui_impl_opengl3.h">
       <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ShaderProgram.hpp">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

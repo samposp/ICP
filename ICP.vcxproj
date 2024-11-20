@@ -168,6 +168,7 @@
     <ClCompile Include="src\gl_err_callback.cpp" />
     <ClCompile Include="src\imageProcessing.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\ShaderProgram.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui-master\backends\imgui_impl_glfw.h" />
@@ -184,6 +185,7 @@
     <ClInclude Include="src\FaceRecognition.h" />
     <ClInclude Include="src\gl_err_callback.h" />
     <ClInclude Include="src\imageProcessing.h" />
+    <ClInclude Include="src\ShaderProgram.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
