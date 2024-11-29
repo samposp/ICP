@@ -16,7 +16,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "assets.hpp"
+#include "camera.hpp"
+#include "Mesh.h"
+
 
 class App {
 public:
@@ -26,9 +28,15 @@ public:
     int run(void);
 
     void init_assets(void);
+    void init_glew();
+    void init_glfw();
+    void init_imgui();
     static void error_callback(int error, const char* description);
     static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
     static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    static void fbsize_callback(GLFWwindow* window, int width, int height);
+    static void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos);
+    void update_projection_matrix(void);
 
     ~App();
 
@@ -45,10 +53,18 @@ private:
 
     GLfloat r{ 1.0f }, g{ 0.0f }, b{ 0.0f }, a{ 1.0f };
 
-    std::vector<vertex> triangle_vertices =
-    {
-        {{0.0f,  0.5f,  0.0f}},
-        {{0.5f, -0.5f,  0.0f}},
-        {{-0.5f, -0.5f,  0.0f}}
-    };
+    std::unordered_map<std::string, Mesh> scene;
+
+    ShaderProgram shader;
+    
+protected: 
+    int width{ 800 }, height{ 600 };
+    float fov = 60.0f;
+    glm::mat4 projection_matrix = glm::identity<glm::mat4>();
+
+    // camera related 
+    Camera camera = Camera(glm::vec3(0, 0, 1000));
+    // remember last cursor position, move relative to that in the next frame
+    double cursorLastX{ 0 };
+    double cursorLastY{ 0 };
 };

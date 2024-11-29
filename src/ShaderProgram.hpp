@@ -7,6 +7,8 @@
 
 class ShaderProgram {
 public:
+
+
 	// you can add more constructors for pipeline with GS, TS etc.
 	ShaderProgram(void) = default; //does nothing
 	ShaderProgram(const std::filesystem::path & VS_file, const std::filesystem::path & FS_file); // TODO: load, compile, and link shader
@@ -29,8 +31,10 @@ public:
     void setUniform(const std::string & name, const glm::mat3 val);   
     void setUniform(const std::string & name, const glm::mat4 val);
     
+	GLuint getID();
+
 private:
-	GLuint ID{0}; // default = 0, empty shader
+	GLuint ID{ 0 }; // default = 0, empty shader
 	std::string getShaderInfoLog(const GLuint obj); 
 	std::string getProgramInfoLog(const GLuint obj);
 

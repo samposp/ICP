@@ -144,6 +144,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="README.md" />
+    <None Include="resources\Shaders\basic.frag" />
+    <None Include="resources\Shaders\basic.vert" />
+    <None Include="resources\Shaders\basic_core.frag" />
+    <None Include="resources\Shaders\basic_core.vert" />
+    <None Include="resources\Shaders\basic_uniform.frag" />
+    <None Include="resources\Shaders\basic_uniform.vert" />
     <None Include="resources\video.mkv" />
   </ItemGroup>
   <ItemGroup>
@@ -163,11 +169,14 @@
     <ClCompile Include="imgui-master\imgui_tables.cpp" />
     <ClCompile Include="imgui-master\imgui_widgets.cpp" />
     <ClCompile Include="src\App.cpp" />
+    <ClCompile Include="src\callbacks.cpp" />
     <ClCompile Include="src\codec.cpp" />
     <ClCompile Include="src\FaceRecongnition.cpp" />
     <ClCompile Include="src\gl_err_callback.cpp" />
     <ClCompile Include="src\imageProcessing.cpp" />
+    <ClCompile Include="src\init.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\OBJloader.cpp" />
     <ClCompile Include="src\ShaderProgram.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -180,12 +189,17 @@
     <ClInclude Include="imgui-master\imstb_textedit.h" />
     <ClInclude Include="imgui-master\imstb_truetype.h" />
     <ClInclude Include="src\App.h" />
-    <ClInclude Include="src\assets.hpp" />
+    <ClInclude Include="src\camera.hpp" />
     <ClInclude Include="src\codec.h" />
     <ClInclude Include="src\FaceRecognition.h" />
     <ClInclude Include="src\gl_err_callback.h" />
     <ClInclude Include="src\imageProcessing.h" />
+    <ClInclude Include="src\Mesh.h" />
+    <ClInclude Include="src\Model.h" />
+    <ClInclude Include="src\OBJloader.hpp" />
     <ClInclude Include="src\ShaderProgram.hpp" />
+    <ClInclude Include="src\teapot_vec.hpp" />
+    <ClInclude Include="src\Vertex.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
