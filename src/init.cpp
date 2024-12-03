@@ -28,20 +28,36 @@
 void App::init_assets(void)
 {
     // load models, load textures, load shaders, initialize level, etc...   -most can be parallel
-    shader = ShaderProgram("resources/Shaders/basic_core.vert", "resources/Shaders/basic_core.frag");
-
+    //shader = ShaderProgram("resources/Shaders/basic_core.vert", "resources/Shaders/basic_core.frag");
+    //shaders.push_back(shader);
+    shader = ShaderProgram("resources/Shaders/tex.vert", "resources/Shaders/tex.frag");
+    //shaders.push_back(texShader);
 
     std::vector<Vertex> vertices;
     std::vector<GLuint> indices;
 
-    glm::vec3 origin = glm::vec3(0.0f);
+    // CREATE CUBE
     glm::vec3 orientation = glm::vec3(0.0f);
+    glm::vec3 size = glm::vec3(120.0f);
+    glm::vec3 origin = glm::vec3(0.0f, 0.0f, 0.0f);
+    loadOBJ("resources/Objects/cube_tri_vnt.obj", vertices, indices);
+    Mesh cube = Mesh(GL_TRIANGLES, shader, vertices, indices, origin, orientation, size);
+    cube.texture_id = textureInit("resources/textures/box_rgb888.png");
+    scene.insert({ "cube", cube });
 
-    loadOBJ("resources/Objects/cube_triangles_vnt.obj", vertices, indices);
+    // ADD TEXTURE
 
-    Mesh my_mesh = Mesh(GL_TRIANGLES, shader, vertices, indices, origin, orientation);
+    //loadOBJ("resources/Objects/teapot_tri_vnt.obj", vertices, indices);
+    //origin = glm::vec3(0.0f, -10.0f, 0.0f);
+    //size = glm::vec3(30.0f);
+    //Mesh teapot = Mesh(GL_TRIANGLES, shader, vertices, indices, origin, orientation, size);
+    //scene.insert({ "teapot", teapot });
 
-    scene.insert({ "mesh1", my_mesh });
+    //loadOBJ("resources/Objects/sphere_tri_vnt.obj", vertices, indices);
+    //size = glm::vec3(100.0f);
+    //origin = glm::vec3(-5.0f, 0.0f, 0.0f);
+    //Mesh sphere = Mesh(GL_TRIANGLES, shader, vertices, indices, origin, orientation, size);
+    //scene.insert({ "sphere", sphere });
 }
 
 void App::init_imgui() {
@@ -137,4 +153,66 @@ void App::init_glew() {
 
     if (!GLEW_ARB_direct_state_access)
         throw std::runtime_error("No DSA :-(");
+}
+
+GLuint App::textureInit(const std::filesystem::path & file_name)
+{
+    cv::Mat image = cv::imread(file_name.string(), cv::IMREAD_UNCHANGED);  // Read with (potential) Alpha
+    if (image.empty()) {
+        throw std::runtime_error("No texture in file: " + file_name.string());
+    }
+
+    // or print warning, and generate synthetic image with checkerboard pattern 
+    // using OpenCV and use as a texture replacement 
+
+    GLuint texture = gen_tex(image);
+
+    return texture;
+}
+
+GLuint App::gen_tex(cv::Mat& image)
+{
+    GLuint ID;
+
+    if (image.empty()) {
+        throw std::runtime_error("Image empty?\n");
+    }
+
+    // Generates an OpenGL texture object
+    glCreateTextures(GL_TEXTURE_2D, 1, &ID);
+
+    switch (image.channels()) {
+    case 3:
+        // Create and clear space for data - immutable format
+        glTextureStorage2D(ID, 1, GL_RGB8, image.cols, image.rows);
+        // Assigns the image to the OpenGL Texture object
+        glTextureSubImage2D(ID, 0, 0, 0, image.cols, image.rows, GL_BGR, GL_UNSIGNED_BYTE, image.data);
+        break;
+    case 4:
+        glTextureStorage2D(ID, 1, GL_RGBA8, image.cols, image.rows);
+        glTextureSubImage2D(ID, 0, 0, 0, image.cols, image.rows, GL_BGRA, GL_UNSIGNED_BYTE, image.data);
+        break;
+    default:
+        throw std::runtime_error("texture failed"); // Check the image, we want Alpha in this example    
+    }
+
+    // Configures the type of algorithm that is used to make the image smaller or bigger
+    // nearest neighbor - ugly & fast 
+    //glTextureParameteri(ID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  
+    //glTextureParameteri(ID, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    // bilinear - nicer & slower
+    //glTextureParameteri(ID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);    
+    //glTextureParameteri(ID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    // MIPMAP filtering + automatic MIPMAP generation - nicest, needs more memory. Notice: MIPMAP is only for image minifying.
+    glTextureParameteri(ID, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // bilinear magnifying
+    glTextureParameteri(ID, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // trilinear minifying
+    glGenerateTextureMipmap(ID);  //Generate mipmaps now.
+
+    // Configures the way the texture repeats
+    glTextureParameteri(ID, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTextureParameteri(ID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    return ID;
 }

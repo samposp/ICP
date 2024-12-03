@@ -14,6 +14,7 @@ public:
     // mesh data
     glm::vec3 origin{};
     glm::vec3 orientation{};
+    glm::vec3 size{};
     
     GLuint texture_id{0}; // texture id=0  means no texture
     GLenum primitive_type = GL_POINT;
@@ -26,14 +27,15 @@ public:
     float reflectivity{1.0f}; 
 
     // indirect (indexed) draw 
-    Mesh(GLenum primitive_type, ShaderProgram& shader, std::vector<Vertex> const& vertices, std::vector<GLuint> const& indices, glm::vec3 const& origin, glm::vec3 const& orientation, GLuint const texture_id = 0) :
+    Mesh(GLenum primitive_type, ShaderProgram& shader, std::vector<Vertex> const& vertices, std::vector<GLuint> const& indices, glm::vec3 const& origin, glm::vec3 const& orientation, glm::vec3 const& size, GLuint const texture_id = 0) :
         primitive_type(primitive_type),
         shader(shader),
         vertices(vertices),
         indices(indices),
         origin(origin),
         orientation(orientation),
-        texture_id(texture_id)
+        texture_id(texture_id),
+        size(size)
     {
         GLuint prog_h = shader.getID();
         glCreateVertexArrays(1, &VAO);
@@ -90,16 +92,20 @@ public:
         glm::mat4 rx = glm::rotate(glm::mat4(1.0f), orientation.x, glm::vec3(1.0f, 0.0f, 0.0f));
         glm::mat4 ry = glm::rotate(glm::mat4(1.0f), orientation.y, glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 rz = glm::rotate(glm::mat4(1.0f), orientation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-        glm::mat4 s = glm::scale(glm::mat4(1.0f), scale);
+        glm::mat4 s = glm::scale(glm::mat4(1.0f), size);
 
         glm::mat4 m_off = glm::translate(glm::mat4(1.0f), offset);
         glm::mat4 m_rx = glm::rotate(glm::mat4(1.0f), rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
         glm::mat4 m_ry = glm::rotate(glm::mat4(1.0f), rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 m_rz = glm::rotate(glm::mat4(1.0f), rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::mat4 m_s = glm::scale(glm::mat4(1.0f), scale);
 
-        glm::mat4 model_matrix =  s * rz * ry * rx * t *  m_rz * m_ry * m_rx * m_off;
+        glm::mat4 model_matrix =   s * rz * ry * rx * t * m_s * m_rz * m_ry * m_rx * m_off;
 
         shader.setUniform("uM_m", model_matrix);
+
+        glBindTextureUnit(0, texture_id);
+        shader.setUniform("tex0", 0);
 
         glBindVertexArray(VAO);
         glDrawElements(primitive_type, indices.size(), GL_UNSIGNED_INT, 0);

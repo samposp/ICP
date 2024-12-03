@@ -37,6 +37,8 @@ public:
     static void fbsize_callback(GLFWwindow* window, int width, int height);
     static void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos);
     void update_projection_matrix(void);
+    GLuint gen_tex(cv::Mat& image);
+    GLuint textureInit(const std::filesystem::path& file_name);
 
     ~App();
 
@@ -55,6 +57,7 @@ private:
 
     std::unordered_map<std::string, Mesh> scene;
 
+    //std::vector<ShaderProgram> shaders;
     ShaderProgram shader;
     
 protected: 

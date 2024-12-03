@@ -150,6 +150,8 @@
     <None Include="resources\Shaders\basic_core.vert" />
     <None Include="resources\Shaders\basic_uniform.frag" />
     <None Include="resources\Shaders\basic_uniform.vert" />
+    <None Include="resources\Shaders\tex.frag" />
+    <None Include="resources\Shaders\tex.vert" />
     <None Include="resources\video.mkv" />
   </ItemGroup>
   <ItemGroup>

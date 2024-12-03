@@ -63,6 +63,11 @@ int App::run(void)
 
     try {
 
+        glEnable(GL_DEPTH_TEST);
+
+        glEnable(GL_LINE_SMOOTH);
+        glEnable(GL_POLYGON_SMOOTH);
+
         glCullFace(GL_BACK);
         glEnable(GL_CULL_FACE);
 
@@ -107,7 +112,7 @@ int App::run(void)
             for (auto& tuple: scene) {
                 Mesh mesh = tuple.second;
 
-                mesh.draw(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(100.0f));
+                mesh.draw();
                 mesh.shader.setUniform("uV_m", camera.GetViewMatrix());
                 mesh.shader.setUniform("uP_m", projection_matrix);
             }

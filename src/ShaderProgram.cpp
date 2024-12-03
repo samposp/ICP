@@ -18,8 +18,6 @@ ShaderProgram::ShaderProgram(const std::filesystem::path& VS_file, const std::fi
 	shader_ids.push_back(compile_shader(FS_file, GL_FRAGMENT_SHADER));
 
 	ID = link_shader(shader_ids);
-	std::cout << "Shader ID: " << ID << std::endl;
-
 }
 
 void ShaderProgram::setUniform(const std::string& name, const float val) {

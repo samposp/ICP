@@ -46,6 +46,12 @@
     <None Include="resources\Shaders\basic_uniform.vert">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="resources\Shaders\tex.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="resources\Shaders\tex.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resource\lightbulb.jpg">
