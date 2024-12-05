@@ -9,6 +9,7 @@
 #include <thread>
 #include <mutex>
 #include <vector>
+#include < windows.h >
 
 #include <opencv2/opencv.hpp>
 #include <GL/glew.h> 
@@ -38,6 +39,7 @@ bool App::init()
 {
     try {
 
+        init_capture();
         init_glfw();
         init_glew();
         init_imgui();
@@ -59,7 +61,10 @@ bool App::init()
 
 int App::run(void)
 {
-
+    cv::Mat frame, cameraFrame;
+    cv::Point2f center, cameraCenter;
+    std::thread captureThread = std::thread(&App::captureAndFindFace, this, std::ref(cameraFrame), std::ref(cameraCenter));
+    std::thread findFaceThread = std::thread(&App::findFace, this, std::ref(cameraFrame), std::ref(cameraCenter));
 
     try {
 
@@ -82,15 +87,33 @@ int App::run(void)
         camera.Position = glm::vec3(0, 0, 1000);
 
         double last_frame_time = glfwGetTime();
-        // FPS related
-        double fps_last_displayed = last_frame_time;
-        int fps_counter_frames = 0;
-        double FPS = 0.0;
 
+        // Wait for first frame from camera
+        while (frame.empty())
+        {
+            {
+                std::scoped_lock lk(mutex);
+                cameraFrame.copyTo(frame);
+                center.x = cameraCenter.x;
+                center.y = cameraCenter.y;
+            }
+            Sleep(100);
+        }
+        GLuint mytex = gen_tex(frame);
         // animation related
         double frame_begin_timepoint = last_frame_time;
         double previous_frame_render_time{};
         double time_speed{};
+
+        // get texture size (this needs to be done just once, we use immutable format)
+        int my_image_width = 0;
+        int my_image_height = 0;
+        int miplevel = 0;
+
+        glBindTextureUnit(0, mytex);
+
+        glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_WIDTH, &my_image_width);
+        glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_HEIGHT, &my_image_height);
 
         // Clear color saved to OpenGL state machine: no need to set repeatedly in game loop
         glClearColor(0, 0, 0, 0);
@@ -104,11 +127,23 @@ int App::run(void)
 
             // Clear OpenGL canvas, both color buffer and Z-buffer
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            double delta_t = glfwGetTime() - last_frame_time; // render time of the last frame 
+
+            double delta_t = glfwGetTime() - last_frame_time; // render time of the last fram
+            if (stopApp)
+                delta_t = 0.0;
+
             last_frame_time = glfwGetTime();
             camera.ProcessInput(window, delta_t); // process keys etc.
 
+
             //########## create and set View Matrix according to camera settings  ##########
+            {
+                std::scoped_lock lk(mutex);
+                cameraFrame.copyTo(frame);
+                center.x = cameraCenter.x;
+                center.y = cameraCenter.y;
+            }
+            
             for (auto& tuple: scene) {
                 Mesh mesh = tuple.second;
 
@@ -116,6 +151,20 @@ int App::run(void)
                 mesh.shader.setUniform("uV_m", camera.GetViewMatrix());
                 mesh.shader.setUniform("uP_m", projection_matrix);
             }
+            glTextureSubImage2D(mytex, 0, 0, 0, frame.cols, frame.rows, GL_BGR, GL_UNSIGNED_BYTE, frame.data);
+
+             //show texture   
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
+            ImGui::SetNextWindowPos(ImVec2(10, 10));
+            ImGui::SetNextWindowSize(ImVec2(my_image_width, my_image_height));
+            ImGui::Begin("OpenGL Texture");
+            //ImGui::Text("FPS: %.1f", 1/ last_frame_time);
+            ImGui::Image((ImTextureID)(intptr_t)mytex, ImVec2(my_image_width, my_image_height));
+            ImGui::End();
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
             //
             // SWAP + VSYNC
@@ -129,11 +178,13 @@ int App::run(void)
         }
     }
     catch (std::exception const& e) {
-        appClosed = true;
         std::cerr << "App failed : " << e.what() << std::endl;
+        captureThread.join();
+        findFaceThread.join();
         return EXIT_FAILURE;
     }
-
+    captureThread.join();
+    findFaceThread.join();
     return EXIT_SUCCESS;
 }
 

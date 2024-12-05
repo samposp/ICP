@@ -31,6 +31,7 @@ public:
     void init_glew();
     void init_glfw();
     void init_imgui();
+    void init_capture();
     static void error_callback(int error, const char* description);
     static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
     static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -40,11 +41,18 @@ public:
     GLuint gen_tex(cv::Mat& image);
     GLuint textureInit(const std::filesystem::path& file_name);
 
+    void captureAndFindFace(cv::Mat& frame, cv::Point2f& faceCenter);
+    void findFace(cv::Mat& frame, cv::Point2f outCenter);
     ~App();
 
 private:
     std::mutex mutex;
-    std::atomic<bool> appClosed = false;
+    std::atomic<bool> cameraRunning = false;
+    std::atomic<bool> stopApp = false;
+    cv::VideoCapture capture;
+    cv::CascadeClassifier faceCascade = cv::CascadeClassifier("resources/haarcascade_frontalface_default.xml");
+
+
     GLFWwindow* window = NULL;
     int vsync = 0;
     bool show_imgui = true;

@@ -193,7 +193,6 @@
     <ClInclude Include="src\App.h" />
     <ClInclude Include="src\camera.hpp" />
     <ClInclude Include="src\codec.h" />
-    <ClInclude Include="src\FaceRecognition.h" />
     <ClInclude Include="src\gl_err_callback.h" />
     <ClInclude Include="src\imageProcessing.h" />
     <ClInclude Include="src\Mesh.h" />

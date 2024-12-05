@@ -60,6 +60,24 @@ void App::init_assets(void)
     //scene.insert({ "sphere", sphere });
 }
 
+void App::init_capture() {
+    //open first available camera
+    capture = cv::VideoCapture(cv::CAP_DSHOW);
+
+    if (!capture.isOpened())
+    {
+        std::cerr << "no source?" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        cameraRunning = true;
+        std::cout << "Source: " <<
+            ": width=" << capture.get(cv::CAP_PROP_FRAME_WIDTH) <<
+            ", height=" << capture.get(cv::CAP_PROP_FRAME_HEIGHT) << '\n';
+    }
+}
+
 void App::init_imgui() {
     // see https://github.com/ocornut/imgui/wiki/Getting-Started
 

@@ -1,29 +1,11 @@
 
-#include "FaceRecognition.h"
+#include "App.h"
 
-void FaceRecognition::init() {
-    //open first available camera
-    capture = cv::VideoCapture(cv::CAP_DSHOW);
-
-    if (!capture.isOpened())
-    {
-        std::cerr << "no source?" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        cameraRunning = true;
-        std::cout << "Source: " <<
-            ": width=" << capture.get(cv::CAP_PROP_FRAME_WIDTH) <<
-            ", height=" << capture.get(cv::CAP_PROP_FRAME_HEIGHT) << '\n';
-    }
-}
-
-void FaceRecognition::captureAndFindFace(cv::Mat& frame, cv::Point2f& faceCenter) {
+void App::captureAndFindFace(cv::Mat& frame, cv::Point2f& faceCenter) {
 
     {
-        cv::Mat cameraFrame;
-        cv::Point2f cameraFaceCenter;
+        cv::Mat cameraFrame, resizedFrame;
+        //cv::Point2f cameraFaceCenter;
 
         while (true) {
             capture.read(cameraFrame);
@@ -32,38 +14,54 @@ void FaceRecognition::captureAndFindFace(cv::Mat& frame, cv::Point2f& faceCenter
                 cameraRunning = false;
                 return;
             }
-            if (appClosed)
+            if (glfwWindowShouldClose(window))
                 return;
 
-            cameraFaceCenter = findFace(cameraFrame);
+            cv::resize(cameraFrame, resizedFrame, cv::Size(512, 512), cv::INTER_LINEAR);
 
             {
                 std::scoped_lock lk(mutex);
-                cameraFrame.copyTo(frame);
-                faceCenter.x = cameraFaceCenter.x;
-                faceCenter.y = cameraFaceCenter.y;
+                resizedFrame.copyTo(frame);
+                //faceCenter.x = cameraFaceCenter.x;
+                //faceCenter.y = cameraFaceCenter.y;
             }
         }
     }
 }
 
 
-cv::Point2f FaceRecognition::findFace(cv::Mat& frame)
+void App::findFace(cv::Mat& frame, cv::Point2f outCenter)
 {
     cv::Point2f center(0.0f, 0.0f);
-
     cv::Mat scene_grey;
-    cv::cvtColor(frame, scene_grey, cv::COLOR_BGR2GRAY);
+    while (!glfwWindowShouldClose(window)) {
+        std::vector<cv::Rect> faces;
+        if (!frame.empty()) {
+            {
+                std::scoped_lock lk(mutex);
+                cv::cvtColor(frame, scene_grey, cv::COLOR_BGR2GRAY);
+            }
 
-    std::vector<cv::Rect> faces;
-    faceCascade.detectMultiScale(scene_grey, faces);
+            faceCascade.detectMultiScale(scene_grey, faces);
+        }
 
-    if (faces.size() > 0)
-    {
-        // compute "center" as normalized coordinates of the face  
-        center.x = (float)(faces[0].x + (faces[0].width / 2)) / (float)frame.cols;
-        center.y = (float)(faces[0].y + (faces[0].height / 2)) / (float)frame.rows;
+
+        if (faces.size() > 0)
+        {
+            stopApp = false;
+            // compute "center" as normalized coordinates of the face  
+            center.x = (float)(faces[0].x + (faces[0].width / 2)) / (float)frame.cols;
+            center.y = (float)(faces[0].y + (faces[0].height / 2)) / (float)frame.rows;
+        }
+        else {
+            stopApp = true;
+        }
+        
+        cv::Mat scene_grey;
+        {
+            std::scoped_lock lk(mutex);
+            outCenter.x = center.x;
+            outCenter.y = center.y;
+        }
     }
-
-    return center;
 }

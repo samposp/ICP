@@ -135,9 +135,6 @@
     <ClInclude Include="src\imageProcessing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\FaceRecognition.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="imgui-master\imconfig.h">
       <Filter>imgui</Filter>
     </ClInclude>
