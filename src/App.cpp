@@ -129,8 +129,6 @@ int App::run(void)
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             double delta_t = glfwGetTime() - last_frame_time; // render time of the last fram
-            if (stopApp)
-                delta_t = 0.0;
 
             last_frame_time = glfwGetTime();
             camera.ProcessInput(window, delta_t); // process keys etc.
@@ -144,27 +142,42 @@ int App::run(void)
                 center.y = cameraCenter.y;
             }
             
-            for (auto& tuple: scene) {
-                Mesh mesh = tuple.second;
+            if (!stopApp) {
+                for (auto& tuple : scene) {
+                    Mesh mesh = tuple.second;
 
-                mesh.draw();
-                mesh.shader.setUniform("uV_m", camera.GetViewMatrix());
-                mesh.shader.setUniform("uP_m", projection_matrix);
+                    mesh.draw();
+                    mesh.shader.setUniform("uV_m", camera.GetViewMatrix());
+                    mesh.shader.setUniform("uP_m", projection_matrix);
+                }
             }
-            glTextureSubImage2D(mytex, 0, 0, 0, frame.cols, frame.rows, GL_BGR, GL_UNSIGNED_BYTE, frame.data);
+            else {
+                ImGui_ImplOpenGL3_NewFrame();
+                ImGui_ImplGlfw_NewFrame();
+                ImGui::NewFrame();
+                ImGui::SetNextWindowPos(ImVec2(10, 10));
+                ImGui::SetNextWindowSize(ImVec2(200, 50));
+                ImGui::Begin("OpenGL");
+                ImGui::Text("Aplikace zastavena");
+                ImGui::End();
+                ImGui::Render();
+                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            }
+
+            //glTextureSubImage2D(mytex, 0, 0, 0, frame.cols, frame.rows, GL_BGR, GL_UNSIGNED_BYTE, frame.data);
 
              //show texture   
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplGlfw_NewFrame();
-            ImGui::NewFrame();
-            ImGui::SetNextWindowPos(ImVec2(10, 10));
-            ImGui::SetNextWindowSize(ImVec2(my_image_width, my_image_height));
-            ImGui::Begin("OpenGL Texture");
-            //ImGui::Text("FPS: %.1f", 1/ last_frame_time);
-            ImGui::Image((ImTextureID)(intptr_t)mytex, ImVec2(my_image_width, my_image_height));
-            ImGui::End();
-            ImGui::Render();
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            //ImGui_ImplOpenGL3_NewFrame();
+            //ImGui_ImplGlfw_NewFrame();
+            //ImGui::NewFrame();
+            //ImGui::SetNextWindowPos(ImVec2(10, 10));
+            //ImGui::SetNextWindowSize(ImVec2(my_image_width, my_image_height));
+            //ImGui::Begin("OpenGL Texture");
+            ////ImGui::Text("FPS: %.1f", 1/ last_frame_time);
+            //ImGui::Image((ImTextureID)(intptr_t)mytex, ImVec2(my_image_width, my_image_height));
+            //ImGui::End();
+            //ImGui::Render();
+            //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
             //
             // SWAP + VSYNC
