@@ -22,6 +22,9 @@
     <Filter Include="Resource Files\Objects">
       <UniqueIdentifier>{9f975159-7abc-4f68-9c66-3b9496ad486f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Textures">
+      <UniqueIdentifier>{5d9c8edd-7e19-4a6a-b20c-5b95f5214d41}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
@@ -62,6 +65,30 @@
     </Image>
     <Image Include="resources\red_cup.jpg">
       <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="resources\textures\box.png">
+      <Filter>Resource Files\Textures</Filter>
+    </Image>
+    <Image Include="resources\textures\box_rgb888.png">
+      <Filter>Resource Files\Textures</Filter>
+    </Image>
+    <Image Include="resources\textures\heights.png">
+      <Filter>Resource Files\Textures</Filter>
+    </Image>
+    <Image Include="resources\textures\tex_256.png">
+      <Filter>Resource Files\Textures</Filter>
+    </Image>
+    <Image Include="resources\textures\tex_1024.jpg">
+      <Filter>Resource Files\Textures</Filter>
+    </Image>
+    <Image Include="resources\textures\tex_2048.png">
+      <Filter>Resource Files\Textures</Filter>
+    </Image>
+    <Image Include="resources\textures\tex_2048_b.png">
+      <Filter>Resource Files\Textures</Filter>
+    </Image>
+    <Image Include="resources\textures\TextureDouble_A.png">
+      <Filter>Resource Files\Textures</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
@@ -119,6 +146,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\callbacks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\heightMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -48,6 +48,7 @@ bool App::init()
         glfwSetCursorPosCallback(window, cursorPositionCallback);
 
         init_assets();
+        init_hm();
     }
     catch (std::exception const& e) {
         std::cerr << "Init failed : " << e.what() << std::endl;
@@ -142,27 +143,25 @@ int App::run(void)
                 center.y = cameraCenter.y;
             }
             
-            if (!stopApp) {
-                for (auto& tuple : scene) {
-                    Mesh mesh = tuple.second;
+            for (auto& tuple : scene) {
+                Mesh mesh = tuple.second;
 
-                    mesh.draw();
-                    mesh.shader.setUniform("uV_m", camera.GetViewMatrix());
-                    mesh.shader.setUniform("uP_m", projection_matrix);
-                }
+                mesh.draw();
+                mesh.shader.setUniform("uV_m", camera.GetViewMatrix());
+                mesh.shader.setUniform("uP_m", projection_matrix);
             }
-            else {
-                ImGui_ImplOpenGL3_NewFrame();
-                ImGui_ImplGlfw_NewFrame();
-                ImGui::NewFrame();
-                ImGui::SetNextWindowPos(ImVec2(10, 10));
-                ImGui::SetNextWindowSize(ImVec2(200, 50));
-                ImGui::Begin("OpenGL");
-                ImGui::Text("Aplikace zastavena");
-                ImGui::End();
-                ImGui::Render();
-                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-            }
+            //else {
+            //    ImGui_ImplOpenGL3_NewFrame();
+            //    ImGui_ImplGlfw_NewFrame();
+            //    ImGui::NewFrame();
+            //    ImGui::SetNextWindowPos(ImVec2(10, 10));
+            //    ImGui::SetNextWindowSize(ImVec2(200, 50));
+            //    ImGui::Begin("OpenGL");
+            //    ImGui::Text("Aplikace zastavena");
+            //    ImGui::End();
+            //    ImGui::Render();
+            //    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            //}
 
             //glTextureSubImage2D(mytex, 0, 0, 0, frame.cols, frame.rows, GL_BGR, GL_UNSIGNED_BYTE, frame.data);
 

@@ -58,6 +58,7 @@ void App::init_assets(void)
     //origin = glm::vec3(-5.0f, 0.0f, 0.0f);
     //Mesh sphere = Mesh(GL_TRIANGLES, shader, vertices, indices, origin, orientation, size);
     //scene.insert({ "sphere", sphere });
+
 }
 
 void App::init_capture() {
@@ -200,6 +201,10 @@ GLuint App::gen_tex(cv::Mat& image)
     glCreateTextures(GL_TEXTURE_2D, 1, &ID);
 
     switch (image.channels()) {
+    case 1:
+        glTextureStorage2D(ID, 1, GL_R8, image.cols, image.rows);
+        glTextureSubImage2D(ID, 0, 0, 0, image.cols, image.rows, GL_R8, GL_UNSIGNED_BYTE, image.data);
+        break;
     case 3:
         // Create and clear space for data - immutable format
         glTextureStorage2D(ID, 1, GL_RGB8, image.cols, image.rows);

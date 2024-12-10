@@ -32,6 +32,8 @@ public:
     void init_glfw();
     void init_imgui();
     void init_capture();
+    void init_hm(void);
+    Mesh GenHeightMap(const cv::Mat& hmap, const unsigned int mesh_step_size);
     static void error_callback(int error, const char* description);
     static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
     static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);

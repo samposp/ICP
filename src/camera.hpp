@@ -18,7 +18,7 @@ public:
     GLfloat Roll = 0.0f;
     
     // Camera options
-    GLfloat MovementSpeed = 100.0f;
+    GLfloat MovementSpeed = 300.0f;
     GLfloat MouseSensitivity = 0.015f;
 
     Camera(glm::vec3 position):Position(position)

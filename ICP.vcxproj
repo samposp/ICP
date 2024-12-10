@@ -156,6 +156,14 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\red_cup.jpg" />
+    <Image Include="resources\textures\box.png" />
+    <Image Include="resources\textures\box_rgb888.png" />
+    <Image Include="resources\textures\heights.png" />
+    <Image Include="resources\textures\TextureDouble_A.png" />
+    <Image Include="resources\textures\tex_1024.jpg" />
+    <Image Include="resources\textures\tex_2048.png" />
+    <Image Include="resources\textures\tex_2048_b.png" />
+    <Image Include="resources\textures\tex_256.png" />
     <Image Include="Resource\HSV-MAP.png" />
     <Image Include="Resource\lightbulb.jpg" />
   </ItemGroup>
@@ -175,6 +183,7 @@
     <ClCompile Include="src\codec.cpp" />
     <ClCompile Include="src\FaceRecongnition.cpp" />
     <ClCompile Include="src\gl_err_callback.cpp" />
+    <ClCompile Include="src\heightMap.cpp" />
     <ClCompile Include="src\imageProcessing.cpp" />
     <ClCompile Include="src\init.cpp" />
     <ClCompile Include="src\main.cpp" />
