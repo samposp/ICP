@@ -30,8 +30,7 @@ void App::init_assets(void)
     // load models, load textures, load shaders, initialize level, etc...   -most can be parallel
     //shader = ShaderProgram("resources/Shaders/basic_core.vert", "resources/Shaders/basic_core.frag");
     //shaders.push_back(shader);
-    shader = ShaderProgram("resources/Shaders/tex.vert", "resources/Shaders/tex.frag");
-    //shaders.push_back(texShader);
+    shaders.push_back(ShaderProgram("resources/Shaders/tex.vert", "resources/Shaders/tex.frag"));
 
     std::vector<Vertex> vertices;
     std::vector<GLuint> indices;
@@ -41,11 +40,21 @@ void App::init_assets(void)
     glm::vec3 size = glm::vec3(120.0f);
     glm::vec3 origin = glm::vec3(0.0f, 0.0f, 0.0f);
     loadOBJ("resources/Objects/cube_tri_vnt.obj", vertices, indices);
-    Mesh cube = Mesh(GL_TRIANGLES, shader, vertices, indices, origin, orientation, size);
+    Mesh cube = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, origin, orientation, size);
     cube.texture_id = textureInit("resources/textures/box_rgb888.png");
-    scene.insert({ "cube", cube });
+    //scene.insert({ "cube", cube });
+    
 
-    // ADD TEXTURE
+    // TRANSPARENT CUBE
+    //orientation = glm::vec3(0.0f);
+    //size = glm::vec3(120.0f);
+    //origin = glm::vec3(200.0f, 0.0f, 0.0f);
+    Mesh transparentCube = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, origin, orientation, size);
+    transparentCube.texture_id = textureInit("resources/textures/box_rgb888.png");
+    transparentCube.diffuse_color = glm::vec4(1.0f, 1.0f, 1.0f, 0.5f);
+    transparentCube.transparent = true;
+    scene.insert({ "transparentCube", transparentCube });
+    
 
     //loadOBJ("resources/Objects/teapot_tri_vnt.obj", vertices, indices);
     //origin = glm::vec3(0.0f, -10.0f, 0.0f);

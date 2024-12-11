@@ -46,6 +46,8 @@ bool App::init()
         glfwSetFramebufferSizeCallback(window, fbsize_callback);
         glfwSetScrollCallback(window, scroll_callback);
         glfwSetCursorPosCallback(window, cursorPositionCallback);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDepthFunc(GL_LEQUAL);
 
         init_assets();
         init_hm();
@@ -143,13 +145,45 @@ int App::run(void)
                 center.y = cameraCenter.y;
             }
             
-            for (auto& tuple : scene) {
-                Mesh mesh = tuple.second;
 
-                mesh.draw();
-                mesh.shader.setUniform("uV_m", camera.GetViewMatrix());
-                mesh.shader.setUniform("uP_m", projection_matrix);
+            std::vector<Mesh*> transparent;    // temporary, vector of pointers to transparent objects
+            transparent.reserve(scene.size());  // reserve size for all objects to avoid reallocation
+
+            // FIRST PART - draw all non-transparent in any order
+            for (auto& m : scene) {
+                if (!m.second.transparent) {
+                    Mesh mesh = m.second;
+                    mesh.draw();
+                    mesh.shader.setUniform("uV_m", camera.GetViewMatrix());
+                    mesh.shader.setUniform("uP_m", projection_matrix);
+                }
+                else
+                    transparent.emplace_back(&m.second); // save pointer for painters algorithm
             }
+
+            // SECOND PART - draw only transparent - painter's algorithm (sort by distance from camera, from far to near)
+            std::sort(transparent.begin(), transparent.end(), [&](Mesh const* a, Mesh const* b) {
+                glm::vec3 translation_a = glm::vec3(a->model_matrix[3]);  // get 3 values from last column of model matrix = translation
+                glm::vec3 translation_b = glm::vec3(b->model_matrix[3]);  // dtto for model B
+                return glm::distance(camera.Position, translation_a) < glm::distance(camera.Position, translation_b); // sort by distance from camera
+                });
+
+            // set GL for transparent objects
+            glEnable(GL_BLEND);
+            glDepthMask(GL_FALSE);
+            glDisable(GL_CULL_FACE);
+
+            // draw sorted transparent
+            for (auto mesh : transparent) {
+                mesh->draw();
+                mesh->shader.setUniform("uV_m", camera.GetViewMatrix());
+                mesh->shader.setUniform("uP_m", projection_matrix);
+            }
+
+            // restore GL properties
+            glDisable(GL_BLEND);
+            glDepthMask(GL_TRUE);
+            glEnable(GL_CULL_FACE);
             //else {
             //    ImGui_ImplOpenGL3_NewFrame();
             //    ImGui_ImplGlfw_NewFrame();
@@ -231,3 +265,4 @@ void App::update_projection_matrix(void)
         20000.0f             // Far clipping plane. Keep as little as possible.
     );
 }
+

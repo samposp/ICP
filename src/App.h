@@ -67,8 +67,8 @@ private:
 
     std::unordered_map<std::string, Mesh> scene;
 
-    //std::vector<ShaderProgram> shaders;
-    ShaderProgram shader;
+    std::vector<ShaderProgram> shaders;
+    //ShaderProgram shader;
     
 protected: 
     int width{ 800 }, height{ 600 };

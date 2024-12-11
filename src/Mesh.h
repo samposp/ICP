@@ -21,10 +21,11 @@ public:
     ShaderProgram &shader;
     
     // mesh material
-    glm::vec4 ambient_material{1.0f}; //white, non-transparent 
-    glm::vec4 diffuse_material{1.0f}; //white, non-transparent 
-    glm::vec4 specular_material{1.0f}; //white, non-transparent
-    float reflectivity{1.0f}; 
+    glm::vec4 diffuse_color{1.0f};
+
+    glm::mat4 model_matrix{ 1.0f };
+
+    bool transparent = false;
 
     // indirect (indexed) draw 
     Mesh(GLenum primitive_type, ShaderProgram& shader, std::vector<Vertex> const& vertices, std::vector<GLuint> const& indices, glm::vec3 const& origin, glm::vec3 const& orientation, glm::vec3 const& size, GLuint const texture_id = 0) :
@@ -100,12 +101,14 @@ public:
         glm::mat4 m_rz = glm::rotate(glm::mat4(1.0f), rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
         glm::mat4 m_s = glm::scale(glm::mat4(1.0f), scale);
 
-        glm::mat4 model_matrix =   s * rz * ry * rx * t * m_s * m_rz * m_ry * m_rx * m_off;
+        model_matrix =   s * rz * ry * rx * t * m_s * m_rz * m_ry * m_rx * m_off;
 
         shader.setUniform("uM_m", model_matrix);
 
         glBindTextureUnit(0, texture_id);
         shader.setUniform("tex0", 0);
+
+        shader.setUniform("u_diffuse_color", diffuse_color);
 
         glBindVertexArray(VAO);
         glDrawElements(primitive_type, indices.size(), GL_UNSIGNED_INT, 0);

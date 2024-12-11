@@ -119,9 +119,8 @@ Mesh App::GenHeightMap(const cv::Mat& hmap, const unsigned int mesh_step_size)
         }
     }
 
-    shader = ShaderProgram("resources/Shaders/tex.vert", "resources/Shaders/tex.frag");
 
-    Mesh m = Mesh(GL_TRIANGLES, shader, vertices, indices, glm::vec3(-200.0f, -200.0f, -500.0f), glm::vec3(0.0f), glm::vec3(3.0f));
+    Mesh m = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, glm::vec3(-200.0f, -200.0f, -500.0f), glm::vec3(0.0f), glm::vec3(3.0f));
 
     m.texture_id = textureInit("resources/textures/tex_256.png");
     return m;
