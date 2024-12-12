@@ -1,4 +1,5 @@
-
+#include <iostream>
+#include <ctime>
 
 #include  "App.h"
 
@@ -29,6 +30,7 @@ void App::key_callback(GLFWwindow* window, int key, int scancode, int action, in
         case GLFW_KEY_V:
             this_inst->vsync = this_inst->vsync == 1 ? 0 : 1;
             glfwSwapInterval(this_inst->vsync);
+            break;
         case GLFW_KEY_KP_7:
             this_inst->r += 0.1;
             this_inst->r = std::clamp(this_inst->r, 0.0f, 1.0f);
@@ -44,6 +46,7 @@ void App::key_callback(GLFWwindow* window, int key, int scancode, int action, in
         case GLFW_KEY_KP_5:
             this_inst->g -= 0.1;
             this_inst->g = std::clamp(this_inst->g, 0.0f, 1.0f);
+            break;
         case GLFW_KEY_KP_9:
             this_inst->b += 0.1;
             this_inst->b = std::clamp(this_inst->b, 0.0f, 1.0f);
@@ -51,6 +54,27 @@ void App::key_callback(GLFWwindow* window, int key, int scancode, int action, in
         case GLFW_KEY_KP_6:
             this_inst->b -= 0.1;
             this_inst->b = std::clamp(this_inst->b, 0.0f, 1.0f);
+            break;
+        case GLFW_KEY_P: // Take screenshot
+            {
+                BYTE* pixels = new BYTE[3 * this_inst->width * this_inst->height];
+                glReadPixels(0, 0, this_inst->width, this_inst->height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+                cv::Mat screenshot = cv::Mat(this_inst->height, this_inst->width, CV_8UC3, pixels);
+
+                // Get filename 
+                time_t t = time(0);
+                std::tm* now = std::localtime(&t);
+                std::string time = std::to_string(now->tm_year+1900) + '-' + std::to_string(now->tm_mon + 1) + '-' + std::to_string(now->tm_mday) + "_"
+                    + std::to_string(now->tm_hour) + "-" + std::to_string(now->tm_min) + "-"+ std::to_string(now->tm_sec);
+                std::string  filename = "screenshot_" + time + ".jpg";
+                std::cout << filename << std::endl;
+
+                cv::Mat dst;
+                cv::flip(screenshot, dst, 0);
+                cv::cvtColor(dst, dst, cv::COLOR_BGR2RGB);
+                cv::imwrite(filename, dst);
+                break;
+            }
         default:
             break;
         }

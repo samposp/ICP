@@ -55,6 +55,15 @@
     <None Include="resources\Shaders\tex.vert">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="resources\Shaders\directional.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="resources\Shaders\directional.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="resources\Shaders\parametrized,many,COMPAT-OLD.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resource\lightbulb.jpg">
