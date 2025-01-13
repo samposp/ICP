@@ -36,19 +36,19 @@ void App::init_assets(void)
     std::vector<GLuint> indices;
 
     // CREATE CUBE
-    glm::vec3 orientation = glm::vec3(0.0f);
-    glm::vec3 size = glm::vec3(120.0f);
-    glm::vec3 origin = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 orientation = glm::vec3(45.0f);
+    glm::vec3 size = glm::vec3(10.0f);
+    glm::vec3 origin = glm::vec3(2.0f, 0.0f, 0.0f);
     loadOBJ("resources/Objects/cube_tri_vnt.obj", vertices, indices);
     Mesh cube = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, origin, orientation, size);
     cube.texture_id = textureInit("resources/textures/box_rgb888.png");
-    //scene.insert({ "cube", cube });
+    scene.insert({ "cube", cube });
     
 
     // TRANSPARENT CUBE
-    //orientation = glm::vec3(0.0f);
-    //size = glm::vec3(120.0f);
-    //origin = glm::vec3(200.0f, 0.0f, 0.0f);
+    orientation = glm::vec3(0.0f);
+    size = glm::vec3(10.0f);
+    origin = glm::vec3(-1.0f, 0.0f, 0.0f);
     Mesh transparentCube = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, origin, orientation, size);
     transparentCube.texture_id = textureInit("resources/textures/box_rgb888.png");
     transparentCube.diffuse_color = glm::vec4(1.0f, 1.0f, 1.0f, 0.5f);
@@ -67,7 +67,6 @@ void App::init_assets(void)
     //origin = glm::vec3(-5.0f, 0.0f, 0.0f);
     //Mesh sphere = Mesh(GL_TRIANGLES, shader, vertices, indices, origin, orientation, size);
     //scene.insert({ "sphere", sphere });
-
 }
 
 void App::init_capture() {
@@ -103,6 +102,9 @@ void App::init_glfw() {
     if (!glfwInit())
         throw std::runtime_error(std::string("Error in Init glfw"));
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // open window (GL canvas) with no special properties
     // https://www.glfw.org/docs/latest/quick.html#quick_create_window

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include <opencv2\opencv.hpp>
 
 // OpenGL Extension Wrangler: allow all multiplatform GL functions
@@ -18,7 +20,6 @@
 
 #include "camera.hpp"
 #include "Mesh.h"
-
 
 class App {
 public:
@@ -68,7 +69,10 @@ private:
     std::unordered_map<std::string, Mesh> scene;
 
     std::vector<ShaderProgram> shaders;
-    //ShaderProgram shader;
+
+    // Lights
+    glm::vec3 ambientLight = glm::vec3(0.2);
+
     
 protected: 
     int width{ 800 }, height{ 600 };

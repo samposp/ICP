@@ -121,6 +121,7 @@ int App::run(void)
         // Clear color saved to OpenGL state machine: no need to set repeatedly in game loop
         glClearColor(0, 0, 0, 0);
 
+
         while (!glfwWindowShouldClose(window))
         {
 
@@ -149,13 +150,24 @@ int App::run(void)
             std::vector<Mesh*> transparent;    // temporary, vector of pointers to transparent objects
             transparent.reserve(scene.size());  // reserve size for all objects to avoid reallocation
 
+            // set shaders
+            for (auto& shader : shaders) {
+                // set projection matrices
+                shader.setUniform("uV_m", camera.GetViewMatrix());
+                shader.setUniform("uP_m", projection_matrix);
+                shader.setUniform("camPos", camera.Position);
+                // set lights
+                shader.setUniform("ambient_intensity", ambientLight);
+                shader.setUniform("diffuse_intensity", glm::vec3(0.5f));
+                shader.setUniform("specular_intensity", glm::vec3(0.2f));
+                shader.setUniform("specular_shinines", 10.0f);
+            }
+
             // FIRST PART - draw all non-transparent in any order
             for (auto& m : scene) {
                 if (!m.second.transparent) {
                     Mesh mesh = m.second;
                     mesh.draw();
-                    mesh.shader.setUniform("uV_m", camera.GetViewMatrix());
-                    mesh.shader.setUniform("uP_m", projection_matrix);
                 }
                 else
                     transparent.emplace_back(&m.second); // save pointer for painters algorithm
@@ -206,7 +218,7 @@ int App::run(void)
             //ImGui::SetNextWindowPos(ImVec2(10, 10));
             //ImGui::SetNextWindowSize(ImVec2(my_image_width, my_image_height));
             //ImGui::Begin("OpenGL Texture");
-            ////ImGui::Text("FPS: %.1f", 1/ last_frame_time);
+            //ImGui::Text("FPS: %.1f", 1/ last_frame_time);
             //ImGui::Image((ImTextureID)(intptr_t)mytex, ImVec2(my_image_width, my_image_height));
             //ImGui::End();
             //ImGui::Render();
@@ -265,4 +277,5 @@ void App::update_projection_matrix(void)
         20000.0f             // Far clipping plane. Keep as little as possible.
     );
 }
+
 

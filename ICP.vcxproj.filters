@@ -19,9 +19,6 @@
     <Filter Include="Resource Files\Shaders">
       <UniqueIdentifier>{b32492a9-2770-4661-9297-7468e3d1b05c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files\Objects">
-      <UniqueIdentifier>{9f975159-7abc-4f68-9c66-3b9496ad486f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resource Files\Textures">
       <UniqueIdentifier>{5d9c8edd-7e19-4a6a-b20c-5b95f5214d41}</UniqueIdentifier>
     </Filter>

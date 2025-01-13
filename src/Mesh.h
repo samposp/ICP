@@ -18,7 +18,7 @@ public:
     
     GLuint texture_id{0}; // texture id=0  means no texture
     GLenum primitive_type = GL_POINT;
-    ShaderProgram &shader;
+    ShaderProgram& shader;
     
     // mesh material
     glm::vec4 diffuse_color{1.0f};
@@ -51,9 +51,9 @@ public:
             glEnableVertexArrayAttrib(VAO, position_attrib_location);
         }
         // Set end enable Vertex Attribute for Normal
-        GLint normal_attrib_location = glGetAttribLocation(prog_h, "aNormal");
+        GLint normal_attrib_location = glGetAttribLocation(prog_h, "aNorm");
         if (normal_attrib_location == -1)
-            std::cerr << "Position of 'aNormal' not found" << std::endl;
+            std::cerr << "Position of 'aNorm' not found" << std::endl;
         else {
             glVertexArrayAttribFormat(VAO, normal_attrib_location, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, Normal));
             glVertexArrayAttribBinding(VAO, normal_attrib_location, 0);
@@ -90,9 +90,9 @@ public:
 
         // compute complete transformation
         glm::mat4 t = glm::translate(glm::mat4(1.0f), origin);
-        glm::mat4 rx = glm::rotate(glm::mat4(1.0f), orientation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-        glm::mat4 ry = glm::rotate(glm::mat4(1.0f), orientation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 rz = glm::rotate(glm::mat4(1.0f), orientation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::mat4 rx = glm::rotate(glm::mat4(1.0f), glm::radians(orientation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+        glm::mat4 ry = glm::rotate(glm::mat4(1.0f), glm::radians(orientation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 rz = glm::rotate(glm::mat4(1.0f), glm::radians(orientation.z), glm::vec3(0.0f, 0.0f, 1.0f));
         glm::mat4 s = glm::scale(glm::mat4(1.0f), size);
 
         glm::mat4 m_off = glm::translate(glm::mat4(1.0f), offset);

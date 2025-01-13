@@ -12,7 +12,7 @@ void App::init_hm(void)
         if (hmap.empty())
             throw std::runtime_error("ERR: Height map empty? File: " + hm_file.string());
 
-        Mesh height_map = GenHeightMap(flipedHmap, 40); //image, step size
+        Mesh height_map = GenHeightMap(flipedHmap, 10); //image, step size
         scene.insert({"height_map", height_map });
         //std::cout << "Note: height map vertices: " << height_map.vertices.size() << std::endl;
     }
@@ -62,18 +62,20 @@ Mesh App::GenHeightMap(const cv::Mat& hmap, const unsigned int mesh_step_size)
     //   012,023
     //
 
+    float heightScale = 2;
+
     for (unsigned int x_coord = 0; x_coord < (hmap.cols - mesh_step_size); x_coord += mesh_step_size)
     {
         for (unsigned int z_coord = 0; z_coord < (hmap.rows - mesh_step_size); z_coord += mesh_step_size)
         {
             // Get The (X, Y, Z) Value For The Bottom Left Vertex = 0
-            glm::vec3 p0(x_coord, hmap.at<uchar>(cv::Point(x_coord, z_coord)), z_coord);
+            glm::vec3 p0(x_coord, hmap.at<uchar>(cv::Point(x_coord, z_coord))/ heightScale, z_coord);
             // Get The (X, Y, Z) Value For The Bottom Right Vertex = 1
-            glm::vec3 p1(x_coord + mesh_step_size, hmap.at<uchar>(cv::Point(x_coord + mesh_step_size, z_coord)), z_coord);
+            glm::vec3 p1(x_coord + mesh_step_size, hmap.at<uchar>(cv::Point(x_coord + mesh_step_size, z_coord))/ heightScale, z_coord);
             // Get The (X, Y, Z) Value For The Top Right Vertex = 2
-            glm::vec3 p2(x_coord + mesh_step_size, hmap.at<uchar>(cv::Point(x_coord + mesh_step_size, z_coord + mesh_step_size)), z_coord + mesh_step_size);
+            glm::vec3 p2(x_coord + mesh_step_size, hmap.at<uchar>(cv::Point(x_coord + mesh_step_size, z_coord + mesh_step_size))/ heightScale, z_coord + mesh_step_size);
             // Get The (X, Y, Z) Value For The Top Left Vertex = 3
-            glm::vec3 p3(x_coord, hmap.at<uchar>(cv::Point(x_coord, z_coord + mesh_step_size)), z_coord + mesh_step_size);
+            glm::vec3 p3(x_coord, hmap.at<uchar>(cv::Point(x_coord, z_coord + mesh_step_size))/ heightScale, z_coord + mesh_step_size);
 
             // Get max normalized height for tile, set texture accordingly
             // Grayscale image returns 0..256, normalize to 0.0f..1.0f by dividing by 256
@@ -90,8 +92,10 @@ Mesh App::GenHeightMap(const cv::Mat& hmap, const unsigned int mesh_step_size)
             glm::vec2 tc3 = tc0 + glm::vec2(0.0f, 1.0f / 16);       //add offset for bottom leftcorner
 
             // normals for both triangles, CCW
-            glm::vec3 n1 = glm::normalize(glm::cross(p1 - p0, p2 - p0)); // for p1
-            glm::vec3 n2 = glm::normalize(glm::cross(p2 - p0, p3 - p0)); // for p3
+            glm::vec3 n1 = glm::normalize(glm::cross(p2 - p0, p1 - p0)); // for p1
+            glm::vec3 n2 = glm::normalize(glm::cross(p3 - p0, p2 - p0)); // for p3
+            //glm::vec3 n1 = glm::normalize(glm::cross(p0 - p1, p0 - p2));// for p1
+            //glm::vec3 n2 = glm::normalize(glm::cross(p0 - p2, p0 - p3)); // for p3
             glm::vec3 navg = glm::normalize(n1 + n2);                 // average for p0, p2 - common
 
             // place indices
