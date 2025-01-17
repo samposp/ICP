@@ -28,6 +28,8 @@
 #include "ShaderProgram.hpp"
 #include "Model.h"
 
+#include "irrKlang/irrKlang.h"
+
 App::App()
 {
     std::cout << "Constructed\n";
@@ -68,6 +70,19 @@ int App::run(void)
     cv::Point2f center, cameraCenter;
     std::thread captureThread = std::thread(&App::captureAndFindFace, this, std::ref(cameraFrame), std::ref(cameraCenter));
     std::thread findFaceThread = std::thread(&App::findFace, this, std::ref(cameraFrame), std::ref(cameraCenter));
+    
+    irrklang::ISoundEngine* engine = irrklang::createIrrKlangDevice();
+    if (!engine) {
+        throw std::runtime_error("Can not initialize sound engine.");
+    }
+
+    irrklang::ISound* music = engine->play3D("resources/sound/calm_rain.mp3", irrklang::vec3df(2.0f, -10.0f, 0.0f), true, false, true);
+    if (music)
+        music->setMinDistance(15.0f);
+
+    float pos_on_circle = 0.0;
+    const float radius = 5.0;
+
 
     try {
 
@@ -79,15 +94,16 @@ int App::run(void)
         glCullFace(GL_BACK);
         glEnable(GL_CULL_FACE);
 
+
         // disable cursor, so that it can not leave window, and we can process movement
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         // get first position of mouse cursor
         glfwGetCursorPos(window, &cursorLastX, &cursorLastY);
-
+        
         update_projection_matrix();
         glViewport(0, 0, width, height);
-
         camera.Position = glm::vec3(0, 0, 1000);
+        
 
         double last_frame_time = glfwGetTime();
 
@@ -124,6 +140,17 @@ int App::run(void)
 
         while (!glfwWindowShouldClose(window))
         {
+            pos_on_circle += 1.0f;
+            irrklang::vec3df pos_3d(radius * cosf(pos_on_circle), 0, radius * sinf(pos_on_circle * 0.5f));
+
+            glm::vec3 player_pos = camera.Position;
+            glm::vec3 player_look = camera.GetViewMatrix()[2];
+            glm::vec3 player_up = camera.Up;
+            std::cout << player_up.x << " " << player_up.y << " " << player_up.z << std::endl;
+            engine->setListenerPosition(irrklang::vec3df(player_pos.x, player_pos.y, player_pos.z), irrklang::vec3df(player_look.x, player_look.y, player_look.z), irrklang::vec3df(0, 0, 0), irrklang::vec3df(player_up.x, player_up.y, player_up.z));
+
+            //if (!engine->isCurrentlyPlaying("resources/sound/ouch.wav"))
+              //  irrklang::ISound* music = engine->play3D("resources/sound/ouch.wav", irrklang::vec3df(0, 0, 0), true, false, true);                    
 
             //
             // RENDER: GL drawCalls
@@ -135,6 +162,7 @@ int App::run(void)
             double delta_t = glfwGetTime() - last_frame_time; // render time of the last fram
 
             last_frame_time = glfwGetTime();
+   
             camera.ProcessInput(window, delta_t); // process keys etc.
 
 
@@ -234,6 +262,8 @@ int App::run(void)
             //
             glfwPollEvents();
         }
+        engine->drop();
+        engine = nullptr;
     }
     catch (std::exception const& e) {
         std::cerr << "App failed : " << e.what() << std::endl;

@@ -17,6 +17,7 @@ void App::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     this_inst->update_projection_matrix();
 }
 
+bool cursor_visibility = false;
 void App::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     auto this_inst = static_cast<App*>(glfwGetWindowUserPointer(window));
 
@@ -75,6 +76,15 @@ void App::key_callback(GLFWwindow* window, int key, int scancode, int action, in
                 cv::imwrite(filename, dst);
                 break;
             }
+        case GLFW_KEY_C: {
+            cursor_visibility = !cursor_visibility;
+            if (cursor_visibility) {
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            }
+            else {
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            }
+        }
         default:
             break;
         }
@@ -95,9 +105,11 @@ void App::fbsize_callback(GLFWwindow* window, int width, int height)
 };
 
 void App::cursorPositionCallback(GLFWwindow* window, double xpos, double ypos) {
+    if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED) {
     auto app = static_cast<App*>(glfwGetWindowUserPointer(window));
 
     app->camera.ProcessMouseMovement(xpos - app->cursorLastX, (ypos - app->cursorLastY) * -1.0);
     app->cursorLastX = xpos;
     app->cursorLastY = ypos;
+    }
 }

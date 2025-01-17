@@ -56,11 +56,14 @@ void App::init_assets(void)
     scene.insert({ "transparentCube", transparentCube });
     
 
-    //loadOBJ("resources/Objects/teapot_tri_vnt.obj", vertices, indices);
-    //origin = glm::vec3(0.0f, -10.0f, 0.0f);
-    //size = glm::vec3(30.0f);
-    //Mesh teapot = Mesh(GL_TRIANGLES, shader, vertices, indices, origin, orientation, size);
-    //scene.insert({ "teapot", teapot });
+    // TEAPOT WITH SOUND
+    loadOBJ("resources/Objects/teapot_tri_vnt.obj", vertices, indices);
+    orientation = glm::vec3(-25.0f);
+    origin = glm::vec3(2.0f, -10.0f, 0.0f);
+    size = glm::vec3(10.0f);
+    Mesh teapot = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, origin, orientation, size);
+    teapot.texture_id = textureInit("resources/textures/box.png");
+    scene.insert({ "teapot", teapot });
 
     //loadOBJ("resources/Objects/sphere_tri_vnt.obj", vertices, indices);
     //size = glm::vec3(100.0f);
