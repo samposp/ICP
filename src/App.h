@@ -21,6 +21,8 @@
 #include "camera.hpp"
 #include "Mesh.h"
 
+#include "irrKlang/irrKlang.h"
+
 class App {
 public:
     App();
@@ -46,6 +48,10 @@ public:
 
     void captureAndFindFace(cv::Mat& frame, cv::Point2f& faceCenter);
     void findFace(cv::Mat& frame, cv::Point2f outCenter);
+
+    irrklang::ISoundEngine* engine = nullptr;
+    irrklang::ISound* music = nullptr;
+
     ~App();
 
 private:
@@ -54,7 +60,7 @@ private:
     std::atomic<bool> stopApp = false;
     cv::VideoCapture capture;
     cv::CascadeClassifier faceCascade = cv::CascadeClassifier("resources/haarcascade_frontalface_default.xml");
-
+    
 
     GLFWwindow* window = NULL;
     int vsync = 0;

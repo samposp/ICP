@@ -30,6 +30,7 @@
 
 #include "irrKlang/irrKlang.h"
 
+
 App::App()
 {
     std::cout << "Constructed\n";
@@ -53,6 +54,17 @@ bool App::init()
 
         init_assets();
         init_hm();
+
+        engine = irrklang::createIrrKlangDevice();
+        if (!engine) {
+            throw std::runtime_error("Can not initialize sound engine.");
+        }
+        engine->setRolloffFactor(0.8f);
+        engine->setSoundVolume(0.7f);
+        music = engine->play3D("resources/sound/calm_rain.mp3", irrklang::vec3df(866, -247, 88), true, false, true);
+        if (music)
+            music->setMinDistance(20.0f);
+
     }
     catch (std::exception const& e) {
         std::cerr << "Init failed : " << e.what() << std::endl;
@@ -69,19 +81,7 @@ int App::run(void)
     cv::Mat frame, cameraFrame;
     cv::Point2f center, cameraCenter;
     std::thread captureThread = std::thread(&App::captureAndFindFace, this, std::ref(cameraFrame), std::ref(cameraCenter));
-    std::thread findFaceThread = std::thread(&App::findFace, this, std::ref(cameraFrame), std::ref(cameraCenter));
-    
-    irrklang::ISoundEngine* engine = irrklang::createIrrKlangDevice();
-    if (!engine) {
-        throw std::runtime_error("Can not initialize sound engine.");
-    }
-
-    irrklang::ISound* music = engine->play3D("resources/sound/calm_rain.mp3", irrklang::vec3df(2.0f, -10.0f, 0.0f), true, false, true);
-    if (music)
-        music->setMinDistance(15.0f);
-
-    float pos_on_circle = 0.0;
-    const float radius = 5.0;
+    std::thread findFaceThread = std::thread(&App::findFace, this, std::ref(cameraFrame), std::ref(cameraCenter));    
 
 
     try {
@@ -140,13 +140,11 @@ int App::run(void)
 
         while (!glfwWindowShouldClose(window))
         {
-            pos_on_circle += 1.0f;
-            irrklang::vec3df pos_3d(radius * cosf(pos_on_circle), 0, radius * sinf(pos_on_circle * 0.5f));
 
             glm::vec3 player_pos = camera.Position;
             glm::vec3 player_look = camera.GetViewMatrix()[2];
             glm::vec3 player_up = camera.Up;
-            std::cout << player_up.x << " " << player_up.y << " " << player_up.z << std::endl;
+            //std::cout << player_pos.x << " " << player_pos.y << " " << player_pos.z << std::endl;
             engine->setListenerPosition(irrklang::vec3df(player_pos.x, player_pos.y, player_pos.z), irrklang::vec3df(player_look.x, player_look.y, player_look.z), irrklang::vec3df(0, 0, 0), irrklang::vec3df(player_up.x, player_up.y, player_up.z));
 
             //if (!engine->isCurrentlyPlaying("resources/sound/ouch.wav"))
@@ -262,8 +260,6 @@ int App::run(void)
             //
             glfwPollEvents();
         }
-        engine->drop();
-        engine = nullptr;
     }
     catch (std::exception const& e) {
         std::cerr << "App failed : " << e.what() << std::endl;
@@ -291,6 +287,12 @@ App::~App()
         window = nullptr;
     }
     glfwTerminate();
+
+    // clean-up irrKlang
+    if (engine)
+        engine->drop();
+    if (music)
+        music->drop();
 }
 
 void App::update_projection_matrix(void)

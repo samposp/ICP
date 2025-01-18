@@ -76,13 +76,23 @@ void App::key_callback(GLFWwindow* window, int key, int scancode, int action, in
                 cv::imwrite(filename, dst);
                 break;
             }
-        case GLFW_KEY_C: {
+        case GLFW_KEY_C: { // TOGGLE CURSOR
             cursor_visibility = !cursor_visibility;
             if (cursor_visibility) {
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             }
             else {
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            }
+        }
+        case GLFW_KEY_M: { // PAUSE/PLAY SOUND
+            if (this_inst->music) {
+                if (this_inst->music->getIsPaused()) {
+                    this_inst->music->setIsPaused(false);
+                }
+                else {
+                    this_inst->music->setIsPaused(true);
+                }
             }
         }
         default:
