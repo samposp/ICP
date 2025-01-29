@@ -37,6 +37,7 @@ public:
     void init_capture();
     void init_hm(void);
     Mesh GenHeightMap(const cv::Mat& hmap, const unsigned int mesh_step_size);
+    glm::vec3 getPositionOnTerrain(glm::vec3 position);
     static void error_callback(int error, const char* description);
     static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
     static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -66,6 +67,8 @@ private:
     int vsync = 0;
     bool show_imgui = true;
 
+    cv::Mat terrain;
+
     GLuint shader_prog_ID{ 0 };
     GLuint VBO_ID{ 0 };
     GLuint VAO_ID{ 0 };
@@ -86,7 +89,7 @@ protected:
     glm::mat4 projection_matrix = glm::identity<glm::mat4>();
 
     // camera related 
-    Camera camera = Camera(glm::vec3(0, 0, 1000));
+    Camera camera = Camera(glm::vec3(500.0f, 0, 500.0f));
     // remember last cursor position, move relative to that in the next frame
     double cursorLastX{ 0 };
     double cursorLastY{ 0 };

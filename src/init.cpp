@@ -30,7 +30,6 @@ void App::init_assets(void)
     // load models, load textures, load shaders, initialize level, etc...   -most can be parallel
     //shader = ShaderProgram("resources/Shaders/basic_core.vert", "resources/Shaders/basic_core.frag");
     //shaders.push_back(shader);
-    shaders.push_back(ShaderProgram("resources/Shaders/tex.vert", "resources/Shaders/tex.frag"));
 
     std::vector<Vertex> vertices;
     std::vector<GLuint> indices;
@@ -38,7 +37,9 @@ void App::init_assets(void)
     // CREATE CUBE
     glm::vec3 orientation = glm::vec3(45.0f);
     glm::vec3 size = glm::vec3(10.0f);
-    glm::vec3 origin = glm::vec3(2.0f, 0.0f, 0.0f);
+    glm::vec3 origin = glm::vec3(300.0f, 0.0f, 400.0f);
+    origin = getPositionOnTerrain(origin);
+    origin.y += 5;
     loadOBJ("resources/Objects/cube_tri_vnt.obj", vertices, indices);
     Mesh cube = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, origin, orientation, size);
     cube.texture_id = textureInit("resources/textures/box_rgb888.png");
@@ -48,7 +49,9 @@ void App::init_assets(void)
     // TRANSPARENT CUBE
     orientation = glm::vec3(0.0f);
     size = glm::vec3(10.0f);
-    origin = glm::vec3(-1.0f, 0.0f, 0.0f);
+    origin = glm::vec3(10.0f, 10.0f, 0.0f);
+    origin = getPositionOnTerrain(origin);
+    origin.y += 5;
     Mesh transparentCube = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, origin, orientation, size);
     transparentCube.texture_id = textureInit("resources/textures/box_rgb888.png");
     transparentCube.diffuse_color = glm::vec4(1.0f, 1.0f, 1.0f, 0.5f);
@@ -59,8 +62,10 @@ void App::init_assets(void)
     // TEAPOT WITH SOUND
     loadOBJ("resources/Objects/teapot_tri_vnt.obj", vertices, indices);
     orientation = glm::vec3(-25.0f);
-    origin = glm::vec3(160.0f, 44.0f, -42.0f);
+    origin = glm::vec3(600.0f, 44.0f, 700.0f);
     size = glm::vec3(5.0f);
+    origin = getPositionOnTerrain(origin);
+    origin.y += 5;
     Mesh teapot = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, origin, orientation, size);
     teapot.texture_id = textureInit("resources/textures/pot_texture.jpg");
     scene.insert({ "teapot", teapot });

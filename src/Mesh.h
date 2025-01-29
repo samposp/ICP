@@ -101,7 +101,8 @@ public:
         glm::mat4 m_rz = glm::rotate(glm::mat4(1.0f), rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
         glm::mat4 m_s = glm::scale(glm::mat4(1.0f), scale);
 
-        model_matrix =   s * rz * ry * rx * t * m_s * m_rz * m_ry * m_rx * m_off;
+        //model_matrix =   rz * ry * rx * t * s * m_s * m_rz * m_ry * m_rx * m_off;
+        model_matrix = t * s * rx * ry * rz * m_off * m_rx * m_ry * m_rz * m_s;
 
         shader.setUniform("uM_m", model_matrix);
 

@@ -52,8 +52,10 @@ bool App::init()
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDepthFunc(GL_LEQUAL);
 
-        init_assets();
+        shaders.push_back(ShaderProgram("resources/Shaders/tex.vert", "resources/Shaders/tex.frag"));
         init_hm();
+        init_assets();
+        
 
         engine = irrklang::createIrrKlangDevice();
         if (!engine) {
@@ -61,7 +63,11 @@ bool App::init()
         }
         engine->setRolloffFactor(0.8f);
         engine->setSoundVolume(0.7f);
-        music = engine->play3D("resources/sound/calm_rain.mp3", irrklang::vec3df(866, -247, 88), true, false, true);
+
+        glm::vec3 tepotPos = scene.at("teapot").origin;
+
+        irrklang::vec3df soundPos = irrklang::vec3df(tepotPos.x, tepotPos.y, tepotPos.z);
+        music = engine->play3D("resources/sound/calm_rain.mp3", soundPos, true, false, true);
         if (music)
             music->setMinDistance(20.0f);
 
@@ -102,7 +108,6 @@ int App::run(void)
         
         update_projection_matrix();
         glViewport(0, 0, width, height);
-        camera.Position = glm::vec3(0, 0, 1000);
         
 
         double last_frame_time = glfwGetTime();
@@ -142,9 +147,14 @@ int App::run(void)
         {
 
             glm::vec3 player_pos = camera.Position;
+
+            player_pos = getPositionOnTerrain(player_pos);
+            player_pos.y += 20;
+            camera.Position = player_pos;
+
             glm::vec3 player_look = camera.GetViewMatrix()[2];
             glm::vec3 player_up = camera.Up;
-            //std::cout << player_pos.x << " " << player_pos.y << " " << player_pos.z << std::endl;
+           
             engine->setListenerPosition(irrklang::vec3df(player_pos.x, player_pos.y, player_pos.z), irrklang::vec3df(player_look.x, player_look.y, player_look.z), irrklang::vec3df(0, 0, 0), irrklang::vec3df(player_up.x, player_up.y, player_up.z));
 
             //if (!engine->isCurrentlyPlaying("resources/sound/ouch.wav"))
@@ -153,6 +163,8 @@ int App::run(void)
             //
             // RENDER: GL drawCalls
             // 
+
+            //std::cout << std::endl << player_pos.x << ", " << player_pos.y << ", " << player_pos.z << std::endl;
 
             // Clear OpenGL canvas, both color buffer and Z-buffer
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

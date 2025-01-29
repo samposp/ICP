@@ -4,6 +4,8 @@ void App::init_hm(void)
 {
     // height map
     {
+        unsigned int STEP_SIZE = 10;
+
         std::filesystem::path hm_file("resources/textures/heights.png");
         cv::Mat hmap = cv::imread(hm_file.string(), cv::IMREAD_GRAYSCALE);
         cv::Mat flipedHmap;
@@ -12,10 +14,49 @@ void App::init_hm(void)
         if (hmap.empty())
             throw std::runtime_error("ERR: Height map empty? File: " + hm_file.string());
 
-        Mesh height_map = GenHeightMap(flipedHmap, 10); //image, step size
+        terrain = flipedHmap;
+
+        Mesh height_map = GenHeightMap(flipedHmap, STEP_SIZE); //image, step size
         scene.insert({"height_map", height_map });
         //std::cout << "Note: height map vertices: " << height_map.vertices.size() << std::endl;
     }
+}
+
+glm::vec3 App::getPositionOnTerrain(glm::vec3 position) {
+    unsigned int SCALE = 2;
+    unsigned int STEP_SIZE = 10;
+
+    float position_x = position.x;
+
+    if (position_x < 0)
+        position_x = 0;
+    else if (position_x > terrain.cols- 2 * STEP_SIZE)
+        position_x = terrain.cols- 2 * STEP_SIZE;
+
+    float position_z = position.z;
+    if (position_z < 0)
+        position_z = 0;
+    else if (position_z > terrain.rows- 2 * STEP_SIZE)
+        position_z = terrain.rows- 2 * STEP_SIZE;
+
+    int coord_x = floor(position_x / STEP_SIZE) * STEP_SIZE;
+    int coord_z = floor(position_z / STEP_SIZE) * STEP_SIZE;
+
+    float h00 = terrain.at<uchar>(cv::Point(coord_x, coord_z)) / SCALE;
+    float h01 = terrain.at<uchar>(cv::Point(coord_x, coord_z+STEP_SIZE)) / SCALE;
+    float h10 = terrain.at<uchar>(cv::Point(coord_x+STEP_SIZE, coord_z)) / SCALE;
+    float h11 = terrain.at<uchar>(cv::Point(coord_x+ STEP_SIZE, coord_z+STEP_SIZE)) / SCALE;
+
+    float factorX = (position_x - coord_x)/STEP_SIZE;
+    float factorZ = (position_z - coord_z)/ STEP_SIZE;
+
+    float h_bottom = (h01 - h00) * factorZ + h00;
+    float h_top = (h11 - h10) * factorZ + h10;
+
+    float h_final = (h_top - h_bottom) * factorX + h_bottom;
+
+    return glm::vec3(position_x, h_final, position_z);
+
 }
 
 //return bottom left ST coordinate of subtexture
@@ -124,7 +165,7 @@ Mesh App::GenHeightMap(const cv::Mat& hmap, const unsigned int mesh_step_size)
     }
 
 
-    Mesh m = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, glm::vec3(-200.0f, -200.0f, -500.0f), glm::vec3(0.0f), glm::vec3(3.0f));
+    Mesh m = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f));
 
     m.texture_id = textureInit("resources/textures/tex_256.png");
     return m;
