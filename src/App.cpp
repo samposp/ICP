@@ -189,6 +189,7 @@ int App::run(void)
             transparent.reserve(scene.size());  // reserve size for all objects to avoid reallocation
 
             // set shaders
+            shaders[0].activate();
             for (auto& shader : shaders) {
                 // set projection matrices
                 shader.setUniform("uV_m", camera.GetViewMatrix());
