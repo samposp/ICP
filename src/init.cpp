@@ -62,8 +62,8 @@ void App::init_assets(void)
     // TEAPOT WITH SOUND
     loadOBJ("resources/Objects/teapot_tri_vnt.obj", vertices, indices);
     orientation = glm::vec3(-25.0f);
-    origin = glm::vec3(600.0f, 44.0f, 700.0f);
-    size = glm::vec3(5.0f);
+    origin = glm::vec3(515.0f, 136.0f, 526.0f);
+    size = glm::vec3(1.5f);
     origin = getPositionOnTerrain(origin);
     origin.y += 5;
     Mesh teapot = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, origin, orientation, size);
@@ -257,4 +257,20 @@ GLuint App::gen_tex(cv::Mat& image)
     glTextureParameteri(ID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     return ID;
+}
+
+void App::init_sound() {
+    engine = irrklang::createIrrKlangDevice();
+    if (!engine) {
+        throw std::runtime_error("Can not initialize sound engine.");
+    }
+    engine->setRolloffFactor(0.8f);
+    engine->setSoundVolume(0.7f);
+
+    glm::vec3 tepotPos = scene.at("teapot").origin;
+
+    irrklang::vec3df soundPos = irrklang::vec3df(tepotPos.x, tepotPos.y, tepotPos.z);
+    music = engine->play3D("resources/sound/calm_rain.mp3", soundPos, true, false, true);
+    if (music)
+        music->setMinDistance(20.0f);
 }

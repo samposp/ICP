@@ -55,21 +55,7 @@ bool App::init()
         shaders.push_back(ShaderProgram("resources/Shaders/tex.vert", "resources/Shaders/tex.frag"));
         init_hm();
         init_assets();
-        
-
-        engine = irrklang::createIrrKlangDevice();
-        if (!engine) {
-            throw std::runtime_error("Can not initialize sound engine.");
-        }
-        engine->setRolloffFactor(0.8f);
-        engine->setSoundVolume(0.7f);
-
-        glm::vec3 tepotPos = scene.at("teapot").origin;
-
-        irrklang::vec3df soundPos = irrklang::vec3df(tepotPos.x, tepotPos.y, tepotPos.z);
-        music = engine->play3D("resources/sound/calm_rain.mp3", soundPos, true, false, true);
-        if (music)
-            music->setMinDistance(20.0f);
+        init_sound();
 
     }
     catch (std::exception const& e) {
@@ -156,15 +142,13 @@ int App::run(void)
             glm::vec3 player_up = camera.Up;
            
             engine->setListenerPosition(irrklang::vec3df(player_pos.x, player_pos.y, player_pos.z), irrklang::vec3df(player_look.x, player_look.y, player_look.z), irrklang::vec3df(0, 0, 0), irrklang::vec3df(player_up.x, player_up.y, player_up.z));
-
-            //if (!engine->isCurrentlyPlaying("resources/sound/ouch.wav"))
-              //  irrklang::ISound* music = engine->play3D("resources/sound/ouch.wav", irrklang::vec3df(0, 0, 0), true, false, true);                    
+                    
 
             //
             // RENDER: GL drawCalls
             // 
 
-            //std::cout << std::endl << player_pos.x << ", " << player_pos.y << ", " << player_pos.z << std::endl;
+            std::cout << std::endl << player_pos.x << ", " << player_pos.y << ", " << player_pos.z << std::endl;
 
             // Clear OpenGL canvas, both color buffer and Z-buffer
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

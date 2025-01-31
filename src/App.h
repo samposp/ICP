@@ -36,6 +36,7 @@ public:
     void init_imgui();
     void init_capture();
     void init_hm(void);
+    void init_sound();
     Mesh GenHeightMap(const cv::Mat& hmap, const unsigned int mesh_step_size);
     glm::vec3 getPositionOnTerrain(glm::vec3 position);
     static void error_callback(int error, const char* description);

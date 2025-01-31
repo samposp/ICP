@@ -84,6 +84,7 @@ void App::key_callback(GLFWwindow* window, int key, int scancode, int action, in
             else {
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
             }
+            break;
         }
         case GLFW_KEY_M: { // PAUSE/PLAY SOUND
             if (this_inst->music) {
@@ -94,6 +95,7 @@ void App::key_callback(GLFWwindow* window, int key, int scancode, int action, in
                     this_inst->music->setIsPaused(true);
                 }
             }
+            break;
         }
         default:
             break;
