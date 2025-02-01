@@ -15,6 +15,10 @@ vec4 specular_material = vec4(1.0f);
 // lights
 uniform vec3 ambient_intensity, diffuse_intensity = vec3(0.0f), specular_intensity = vec3(1.0f); 
 uniform float specular_shinines = 10;
+// spotlight
+uniform vec3 spotlight_position;
+uniform vec3 spotlight_direction;
+uniform float cut_off;
 
 
 
@@ -45,9 +49,21 @@ void main() {
     vec4 ambient = vec4(ambient_intensity, 1.0f) * u_diffuse_color;
     vec4 diffuse = max(dot(N, L), 0.0) * u_diffuse_color * vec4(diffuse_intensity, 1.0f);
     vec4 specular = pow(max(dot(R, V), 0.0), specular_shinines) * specular_material * vec4(specular_intensity, 1.0f);
+    // calculate spotlight
+    vec3 light_dir = normalize(fs_in.V - spotlight_position);
+    float theta = dot(light_dir, normalize(-spotlight_direction));
+    float spotlight_effect = smoothstep(cut_off, cut_off + 0.01, theta);
+    vec4 spotlight_color = vec4(1.0, 0.9, 0.7, 1.0);
+
+    if (theta > cut_off) {
+        vec4 spotlight_diffuse = max(dot(N, light_dir), 0.0) * u_diffuse_color * spotlight_color;
+        diffuse += spotlight_diffuse * spotlight_effect;
+    }
+
+
 
     // modulate texture with material color, including transparency
-     vec4 color = (ambient + diffuse) * texture(tex0, fs_in.texcoord)  + specular;
+     vec4 color = (ambient + diffuse) * texture(tex0, fs_in.texcoord) + specular;
      float depth = log_depth(gl_FragCoord.z, 15.0f, 19.8f);
      FragColor = mix(color, fog_color, depth); //linear interpolation
 }

@@ -148,7 +148,7 @@ int App::run(void)
             // RENDER: GL drawCalls
             // 
 
-            std::cout << std::endl << player_pos.x << ", " << player_pos.y << ", " << player_pos.z << std::endl;
+            //std::cout << std::endl << player_pos.x << ", " << player_pos.y << ", " << player_pos.z << std::endl;
 
             // Clear OpenGL canvas, both color buffer and Z-buffer
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -174,6 +174,7 @@ int App::run(void)
 
             // set shaders
             shaders[0].activate();
+            std::cout << "Spotlight dir: " << camera.Front.x << ", " << camera.Front.y << ", " << camera.Front.z << std::endl;
             for (auto& shader : shaders) {
                 // set projection matrices
                 shader.setUniform("uV_m", camera.GetViewMatrix());
@@ -184,6 +185,10 @@ int App::run(void)
                 shader.setUniform("diffuse_intensity", glm::vec3(0.5f));
                 shader.setUniform("specular_intensity", glm::vec3(0.2f));
                 shader.setUniform("specular_shinines", 10.0f);
+                // set spotlight
+                shader.setUniform("spotlight_position", player_pos);
+                shader.setUniform("spotlight_direction", camera.Front);
+                shader.setUniform("cut_off", glm::cos(glm::radians(15.0f)));
             }
 
             // FIRST PART - draw all non-transparent in any order

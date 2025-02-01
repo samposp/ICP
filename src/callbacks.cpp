@@ -83,6 +83,7 @@ void App::key_callback(GLFWwindow* window, int key, int scancode, int action, in
             }
             else {
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                glfwGetCursorPos(window, &(this_inst->cursorLastX), &(this_inst->cursorLastY));
             }
             break;
         }
