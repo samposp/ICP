@@ -172,10 +172,10 @@ int App::run(void)
             std::vector<Mesh*> transparent;    // temporary, vector of pointers to transparent objects
             transparent.reserve(scene.size());  // reserve size for all objects to avoid reallocation
 
-            // set shaders
-            shaders[0].activate();
+
             std::cout << "Spotlight dir: " << camera.Front.x << ", " << camera.Front.y << ", " << camera.Front.z << std::endl;
             for (auto& shader : shaders) {
+                shader.activate();
                 // set projection matrices
                 shader.setUniform("uV_m", camera.GetViewMatrix());
                 shader.setUniform("uP_m", projection_matrix);
@@ -186,7 +186,6 @@ int App::run(void)
                 shader.setUniform("specular_intensity", glm::vec3(0.2f));
                 shader.setUniform("specular_shinines", 10.0f);
                 // set spotlight
-                shader.setUniform("spotlight_position", player_pos);
                 shader.setUniform("spotlight_direction", camera.Front);
                 shader.setUniform("cut_off", glm::cos(glm::radians(15.0f)));
             }
@@ -216,8 +215,6 @@ int App::run(void)
             // draw sorted transparent
             for (auto mesh : transparent) {
                 mesh->draw();
-                mesh->shader.setUniform("uV_m", camera.GetViewMatrix());
-                mesh->shader.setUniform("uP_m", projection_matrix);
             }
 
             // restore GL properties
