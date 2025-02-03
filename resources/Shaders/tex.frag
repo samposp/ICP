@@ -25,9 +25,9 @@ uniform vec3 spotlight_direction;
 out vec4 FragColor; 
 
 // fog
-vec4 fog_color = vec4(vec3(0.0f), 0.5f); // black, non-transparent = night
+vec4 fog_color = vec4(vec3(0.0f), 1.0f); // black, non-transparent = night
 float near = 0.1f;
-float far = 20.0f;
+float far = 500.0f;
 
 float log_depth(float depth, float steepness, float offset)
 {
@@ -63,6 +63,6 @@ void main() {
 
     // modulate texture with material color, including transparency
      vec4 color = (ambient + diffuse) * texture(tex0, fs_in.texcoord) + specular;
-     float depth = log_depth(gl_FragCoord.z, 15.0f, 19.8f);
+     float depth = log_depth(gl_FragCoord.z, 0.05f, 200.0f);
      FragColor = mix(color, fog_color, depth); //linear interpolation
 }
