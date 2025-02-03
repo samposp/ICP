@@ -11,14 +11,11 @@ uniform vec3 camPos;
 // Light properties
 uniform vec3 light_position = vec3(10000.0f, 10000.0f, 0.0f);
 
-uniform vec3 spotlight_direction;
-
 out VS_OUT {
     vec2 texcoord;
     vec3 N;
     vec3 L;
     vec3 V;
-    vec3 spotlight_direction;
 } vs_out;
 
 void main() {
@@ -36,8 +33,6 @@ void main() {
      // Calculate view-space light vector
     // vs_out.L = light_position - P.xyz;
     vs_out.L = (vec4(light_position, 0.0f) - ( uM_m * vec4(aPos, 1.0f))).xyz;
-
-    vs_out.spotlight_direction = mat3(uM_m) * spotlight_direction;
 
     // Calculate view vector (negative of the view-space position)
     // vs_out.V = -P.xyz;

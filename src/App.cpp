@@ -173,7 +173,7 @@ int App::run(void)
             transparent.reserve(scene.size());  // reserve size for all objects to avoid reallocation
 
 
-            std::cout << "Spotlight dir: " << camera.Front.x << ", " << camera.Front.y << ", " << camera.Front.z << std::endl;
+            //std::cout << "Spotlight dir: " << camera.Front.x << ", " << camera.Front.y << ", " << camera.Front.z << std::endl;
             for (auto& shader : shaders) {
                 shader.activate();
                 // set projection matrices

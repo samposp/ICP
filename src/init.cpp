@@ -35,9 +35,9 @@ void App::init_assets(void)
     std::vector<GLuint> indices;
 
     // CREATE CUBE
-    glm::vec3 orientation = glm::vec3(45.0f);
+    glm::vec3 orientation = glm::vec3(10.0f);
     glm::vec3 size = glm::vec3(10.0f);
-    glm::vec3 origin = glm::vec3(300.0f, 0.0f, 400.0f);
+    glm::vec3 origin = glm::vec3((510.0f), 0.0f, 510.0f);
     origin = getPositionOnTerrain(origin);
     origin.y += 5;
     loadOBJ("resources/Objects/cube_tri_vnt.obj", vertices, indices);
@@ -49,7 +49,7 @@ void App::init_assets(void)
     // TRANSPARENT CUBE
     orientation = glm::vec3(0.0f);
     size = glm::vec3(10.0f);
-    origin = glm::vec3(10.0f, 10.0f, 0.0f);
+    origin = glm::vec3(300.0f, 10.0f, 500.0f);
     origin = getPositionOnTerrain(origin);
     origin.y += 5;
     Mesh transparentCube = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, origin, orientation, size);

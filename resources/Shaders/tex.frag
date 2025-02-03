@@ -6,7 +6,6 @@ in VS_OUT {
     vec3 N;
     vec3 L;
     vec3 V;
-    vec3 spotlight_direction;
 } fs_in;
 
 // uniform variables
@@ -18,6 +17,7 @@ uniform vec3 ambient_intensity, diffuse_intensity = vec3(0.0f), specular_intensi
 uniform float specular_shinines = 10;
 // spotlight
 uniform float cut_off;
+uniform vec3 spotlight_direction;
 
 
 
@@ -50,7 +50,7 @@ void main() {
     vec4 specular = pow(max(dot(R, V), 0.0), specular_shinines) * specular_material * vec4(specular_intensity, 1.0f);
 
     // calculate spotlight
-    float theta = dot(normalize(fs_in.spotlight_direction), - V);
+    float theta = dot(normalize(spotlight_direction), - V);
     float spotlight_effect = smoothstep(cut_off, cut_off + 0.01, theta);
     vec4 spotlight_color = vec4(1.0, 0.9, 0.7, 1.0);
 
