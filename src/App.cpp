@@ -96,7 +96,18 @@ int App::run(void)
         glViewport(0, 0, width, height);
         
 
-        double last_frame_time = glfwGetTime();
+        double now = glfwGetTime();
+        double last{};
+        // FPS related
+        double fps_last_displayed = now;
+        int fps_counter_frames = 0;
+        double FPS = 0.0;
+
+
+        // animation related
+        double frame_begin_timepoint = now;
+        double previous_frame_render_time{};
+        double time_speed{};
 
         // Wait for first frame from camera
         while (frame.empty())
@@ -107,26 +118,20 @@ int App::run(void)
                 center.x = cameraCenter.x;
                 center.y = cameraCenter.y;
             }
-            Sleep(100);
         }
-        GLuint mytex = gen_tex(frame);
-        // animation related
-        double frame_begin_timepoint = last_frame_time;
-        double previous_frame_render_time{};
-        double time_speed{};
-
-        // get texture size (this needs to be done just once, we use immutable format)
-        int my_image_width = 0;
-        int my_image_height = 0;
-        int miplevel = 0;
-
-        glBindTextureUnit(0, mytex);
-
-        glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_WIDTH, &my_image_width);
-        glGetTexLevelParameteriv(GL_TEXTURE_2D, miplevel, GL_TEXTURE_HEIGHT, &my_image_height);
 
         // Clear color saved to OpenGL state machine: no need to set repeatedly in game loop
         glClearColor(0, 0, 0, 0);
+
+        // set light 
+        for (auto& shader : shaders) {
+            shader.activate();
+            shader.setUniform("ambient_intensity", ambientLight);
+            shader.setUniform("diffuse_intensity", glm::vec3(0.5f));
+            shader.setUniform("specular_intensity", glm::vec3(0.2f));
+            shader.setUniform("specular_shinines", 10.0f);
+            shader.setUniform("cut_off", glm::cos(glm::radians(15.0f)));
+        }
 
 
         while (!glfwWindowShouldClose(window))
@@ -143,21 +148,17 @@ int App::run(void)
            
             engine->setListenerPosition(irrklang::vec3df(player_pos.x, player_pos.y, player_pos.z), irrklang::vec3df(player_look.x, player_look.y, player_look.z), irrklang::vec3df(0, 0, 0), irrklang::vec3df(player_up.x, player_up.y, player_up.z));
                     
+            now = glfwGetTime();
+            double delta_t = now - last; // render time of the last fram
+            last = now;
+            camera.ProcessInput(window, delta_t); // process keys etc.
 
             //
             // RENDER: GL drawCalls
             // 
 
-            //std::cout << std::endl << player_pos.x << ", " << player_pos.y << ", " << player_pos.z << std::endl;
-
             // Clear OpenGL canvas, both color buffer and Z-buffer
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            double delta_t = glfwGetTime() - last_frame_time; // render time of the last fram
-
-            last_frame_time = glfwGetTime();
-   
-            camera.ProcessInput(window, delta_t); // process keys etc.
 
 
             //########## create and set View Matrix according to camera settings  ##########
@@ -172,22 +173,15 @@ int App::run(void)
             std::vector<Mesh*> transparent;    // temporary, vector of pointers to transparent objects
             transparent.reserve(scene.size());  // reserve size for all objects to avoid reallocation
 
-
-            //std::cout << "Spotlight dir: " << camera.Front.x << ", " << camera.Front.y << ", " << camera.Front.z << std::endl;
             for (auto& shader : shaders) {
                 shader.activate();
                 // set projection matrices
                 shader.setUniform("uV_m", camera.GetViewMatrix());
                 shader.setUniform("uP_m", projection_matrix);
                 shader.setUniform("camPos", camera.Position);
-                // set lights
-                shader.setUniform("ambient_intensity", ambientLight);
-                shader.setUniform("diffuse_intensity", glm::vec3(0.5f));
-                shader.setUniform("specular_intensity", glm::vec3(0.2f));
-                shader.setUniform("specular_shinines", 10.0f);
+
                 // set spotlight
                 shader.setUniform("spotlight_direction", camera.Front);
-                shader.setUniform("cut_off", glm::cos(glm::radians(15.0f)));
             }
 
             // FIRST PART - draw all non-transparent in any order
@@ -221,33 +215,27 @@ int App::run(void)
             glDisable(GL_BLEND);
             glDepthMask(GL_TRUE);
             glEnable(GL_CULL_FACE);
-            //else {
-            //    ImGui_ImplOpenGL3_NewFrame();
-            //    ImGui_ImplGlfw_NewFrame();
-            //    ImGui::NewFrame();
-            //    ImGui::SetNextWindowPos(ImVec2(10, 10));
-            //    ImGui::SetNextWindowSize(ImVec2(200, 50));
-            //    ImGui::Begin("OpenGL");
-            //    ImGui::Text("Aplikace zastavena");
-            //    ImGui::End();
-            //    ImGui::Render();
-            //    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-            //}
 
-            //glTextureSubImage2D(mytex, 0, 0, 0, frame.cols, frame.rows, GL_BGR, GL_UNSIGNED_BYTE, frame.data);
+            if (show_imgui) {
+                ImGui_ImplOpenGL3_NewFrame();
+                ImGui_ImplGlfw_NewFrame();
+                ImGui::NewFrame();
+                ImGui::SetNextWindowPos(ImVec2(10, 10));
+                ImGui::SetNextWindowSize(ImVec2(250, 150));
+                ImGui::Begin("Info", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+                ImGui::Text("V-Sync: %s", vsync ? "ON" : "OFF");
+                ImGui::Text("FPS: %.1f", FPS);
+                ImGui::Text("H to show/hide info");
+                ImGui::Text("C to show/hide cursor");
+                ImGui::Text("M to mute sound");
+                ImGui::End();
+            }
 
-             //show texture   
-            //ImGui_ImplOpenGL3_NewFrame();
-            //ImGui_ImplGlfw_NewFrame();
-            //ImGui::NewFrame();
-            //ImGui::SetNextWindowPos(ImVec2(10, 10));
-            //ImGui::SetNextWindowSize(ImVec2(my_image_width, my_image_height));
-            //ImGui::Begin("OpenGL Texture");
-            //ImGui::Text("FPS: %.1f", 1/ last_frame_time);
-            //ImGui::Image((ImTextureID)(intptr_t)mytex, ImVec2(my_image_width, my_image_height));
-            //ImGui::End();
-            //ImGui::Render();
-            //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            if (show_imgui) {
+                ImGui::Render();
+                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            }
+
 
             //
             // SWAP + VSYNC
@@ -258,6 +246,17 @@ int App::run(void)
             // POLL
             //
             glfwPollEvents();
+
+            // Time/FPS measurement
+            previous_frame_render_time = now - frame_begin_timepoint; //compute delta_t
+            frame_begin_timepoint = now; // set new start
+
+            fps_counter_frames++;
+            if (now - fps_last_displayed >= 1) {
+                FPS = fps_counter_frames / (now - fps_last_displayed);
+                fps_last_displayed = now;
+                fps_counter_frames = 0;
+            }
         }
     }
     catch (std::exception const& e) {

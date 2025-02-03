@@ -74,8 +74,6 @@ private:
     GLuint VBO_ID{ 0 };
     GLuint VAO_ID{ 0 };
 
-    GLfloat r{ 1.0f }, g{ 0.0f }, b{ 0.0f }, a{ 1.0f };
-
     std::unordered_map<std::string, Mesh> scene;
 
     std::vector<ShaderProgram> shaders;

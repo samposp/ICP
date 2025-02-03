@@ -25,36 +25,15 @@ void App::key_callback(GLFWwindow* window, int key, int scancode, int action, in
     {
         switch (key)
         {
+        case GLFW_KEY_H:
+            this_inst->show_imgui = !this_inst->show_imgui;
+            break;
         case GLFW_KEY_ESCAPE:
             glfwSetWindowShouldClose(window, GLFW_TRUE);
             break;
         case GLFW_KEY_V:
             this_inst->vsync = this_inst->vsync == 1 ? 0 : 1;
             glfwSwapInterval(this_inst->vsync);
-            break;
-        case GLFW_KEY_KP_7:
-            this_inst->r += 0.1;
-            this_inst->r = std::clamp(this_inst->r, 0.0f, 1.0f);
-            break;
-        case GLFW_KEY_KP_4:
-            this_inst->r -= 0.1;
-            this_inst->r = std::clamp(this_inst->r, 0.0f, 1.0f);
-            break;
-        case GLFW_KEY_KP_8:
-            this_inst->g += 0.1;
-            this_inst->g = std::clamp(this_inst->g, 0.0f, 1.0f);
-            break;
-        case GLFW_KEY_KP_5:
-            this_inst->g -= 0.1;
-            this_inst->g = std::clamp(this_inst->g, 0.0f, 1.0f);
-            break;
-        case GLFW_KEY_KP_9:
-            this_inst->b += 0.1;
-            this_inst->b = std::clamp(this_inst->b, 0.0f, 1.0f);
-            break;
-        case GLFW_KEY_KP_6:
-            this_inst->b -= 0.1;
-            this_inst->b = std::clamp(this_inst->b, 0.0f, 1.0f);
             break;
         case GLFW_KEY_P: // Take screenshot
             {
