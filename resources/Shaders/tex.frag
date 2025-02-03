@@ -18,6 +18,7 @@ uniform float specular_shinines = 10;
 // spotlight
 uniform float cut_off;
 uniform vec3 spotlight_direction;
+uniform bool spotlight_on = true;
 
 
 
@@ -28,6 +29,10 @@ out vec4 FragColor;
 vec4 fog_color = vec4(vec3(0.0f), 1.0f); // black, non-transparent = night
 float near = 0.1f;
 float far = 500.0f;
+
+// spotlight attenuation
+float linearAttenuation = 0.001f;
+float quadraticAttenuation = 0.0001f;
 
 float log_depth(float depth, float steepness, float offset)
 {
@@ -50,15 +55,21 @@ void main() {
     vec4 specular = pow(max(dot(R, V), 0.0), specular_shinines) * specular_material * vec4(specular_intensity, 1.0f);
 
     // calculate spotlight
-    float theta = dot(normalize(spotlight_direction), - V);
-    float spotlight_effect = smoothstep(cut_off, cut_off + 0.01, theta);
-    vec4 spotlight_color = vec4(1.0, 0.9, 0.7, 1.0);
+    if (spotlight_on){
+        float theta = dot(normalize(spotlight_direction), - V);
+        float spotlight_effect = smoothstep(cut_off, cut_off + 0.03, theta);
+        vec4 spotlight_color = vec4(1.0, 0.9, 0.7, 1.0);
 
-    if (theta > cut_off) {
-        vec4 spotlight_diffuse = max(dot(N, V), 0.0) * u_diffuse_color * spotlight_color;
-        diffuse += spotlight_diffuse * spotlight_effect;
+        if (theta > cut_off) {
+            vec4 spotlight_diffuse = max(dot(N, V), 0.0) * u_diffuse_color * spotlight_color;
+            vec3 R_V = reflect(-V, N);
+            vec4 spotlight_specular = pow(max(dot(R_V, V), 0.0), specular_shinines) * specular_material * vec4(specular_intensity, 1.0f);
+            float d = length(fs_in.V) ; // vector to light source
+            float dist_attenuation = clamp(1.0 / (linearAttenuation * d + quadraticAttenuation * d * d), 0, 1);
+            diffuse += spotlight_diffuse * spotlight_effect * dist_attenuation;
+            specular += spotlight_specular * spotlight_effect * dist_attenuation;
+        }
     }
-
 
 
     // modulate texture with material color, including transparency

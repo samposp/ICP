@@ -80,6 +80,7 @@ private:
 
     // Lights
     glm::vec3 ambientLight = glm::vec3(0.2);
+    bool spotlight_on = true;
 
     
 protected: 

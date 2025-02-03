@@ -130,7 +130,7 @@ int App::run(void)
             shader.setUniform("diffuse_intensity", glm::vec3(0.5f));
             shader.setUniform("specular_intensity", glm::vec3(0.2f));
             shader.setUniform("specular_shinines", 10.0f);
-            shader.setUniform("cut_off", glm::cos(glm::radians(15.0f)));
+            shader.setUniform("cut_off", glm::cos(glm::radians(25.0f)));
         }
 
 
@@ -182,6 +182,7 @@ int App::run(void)
 
                 // set spotlight
                 shader.setUniform("spotlight_direction", camera.Front);
+                shader.setUniform("spotlight_on", spotlight_on);
             }
 
             // FIRST PART - draw all non-transparent in any order
@@ -228,6 +229,7 @@ int App::run(void)
                 ImGui::Text("H to show/hide info");
                 ImGui::Text("C to show/hide cursor");
                 ImGui::Text("M to mute sound");
+                ImGui::Text("L to toggle spotlight");
                 ImGui::End();
             }
 
