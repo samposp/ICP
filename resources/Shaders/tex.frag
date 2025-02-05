@@ -51,7 +51,7 @@ void main() {
 
     // calculate spotlight
     float theta = dot(normalize(spotlight_direction), - V);
-    float spotlight_effect = smoothstep(cut_off, cut_off + 0.01, theta);
+    float spotlight_effect = smoothstep(cut_off, cut_off + 0.03, theta);
     vec4 spotlight_color = vec4(1.0, 0.9, 0.7, 1.0);
 
     if (theta > cut_off) {

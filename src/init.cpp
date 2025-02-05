@@ -70,6 +70,17 @@ void App::init_assets(void)
     teapot.texture_id = textureInit("resources/textures/pot_texture.jpg");
     scene.insert({ "teapot", teapot });
 
+    // DOG
+    loadOBJ("resources/Objects/dog_vn_added2.obj", vertices, indices);
+    orientation = glm::vec3(0.0f);
+    size = glm::vec3(8.0f);
+    origin = glm::vec3(550, 200, 500);
+    origin = getPositionOnTerrain(origin);
+    origin.y += 5;
+    Mesh dog = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, origin, orientation, size);
+    dog.texture_id = textureInit("resources/textures/dog_texture.png");
+    scene.insert({ "dog", dog });
+
     //loadOBJ("resources/Objects/sphere_tri_vnt.obj", vertices, indices);
     //size = glm::vec3(100.0f);
     //origin = glm::vec3(-5.0f, 0.0f, 0.0f);

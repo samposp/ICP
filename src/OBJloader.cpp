@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <GL/glew.h> 
 #include <glm/glm.hpp>
+#include <iostream>
 
 #include "OBJloader.hpp"
 #include "Vertex.h"
@@ -11,6 +12,7 @@
 //bool loadOBJ(const char * path, std::vector < glm::vec3 > & out_vertices, std::vector < glm::vec2 > & out_uvs, std::vector < glm::vec3 > & out_normals)
 bool loadOBJ(const char* path, std::vector<Vertex>& vertices, std::vector<GLuint>& indices)
 {
+	std::cout << "Loading model: " << path << std::endl;
 	//std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
 	std::vector< glm::vec3 > temp_vertices;
 	std::vector< glm::vec2 > temp_uvs;
@@ -118,6 +120,9 @@ bool loadOBJ(const char* path, std::vector<Vertex>& vertices, std::vector<GLuint
 	//	glm::vec3 normal = temp_normals[normalIndex - 1];
 	//	out_normals.push_back(normal);
 	//}
+
+	
+	std::cout << "Model loaded: " << path << std::endl;
 
 	fclose(file);
 	return true;
