@@ -35,6 +35,9 @@ void App::key_callback(GLFWwindow* window, int key, int scancode, int action, in
             this_inst->vsync = this_inst->vsync == 1 ? 0 : 1;
             glfwSwapInterval(this_inst->vsync);
             break;
+        case GLFW_KEY_L:
+            this_inst->spotlight_on = !this_inst->spotlight_on;
+            break;
         case GLFW_KEY_P: // Take screenshot
             {
                 BYTE* pixels = new BYTE[3 * this_inst->width * this_inst->height];
