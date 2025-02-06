@@ -62,7 +62,7 @@ void App::init_assets(void)
     // TEAPOT WITH SOUND
     loadOBJ("resources/Objects/teapot_tri_vnt.obj", vertices, indices);
     orientation = glm::vec3(-25.0f);
-    origin = glm::vec3(515.0f, 136.0f, 526.0f);
+    origin = glm::vec3(515.0f, 100.0f, 526.0f);
     size = glm::vec3(1.5f);
     origin = getPositionOnTerrain(origin);
     origin.y += 5;
@@ -71,14 +71,14 @@ void App::init_assets(void)
     scene.insert({ "teapot", teapot });
 
     // DOG
-    loadOBJ("resources/Objects/dog_vn_added2.obj", vertices, indices);
+    loadOBJ("resources/Objects/dog_vn_added2_reduced.obj", vertices, indices);
     orientation = glm::vec3(0.0f);
-    size = glm::vec3(8.0f);
-    origin = glm::vec3(550, 200, 500);
+    size = glm::vec3(6.0f);
+    origin = glm::vec3(550.0f, 100.0f, 625.0f);
     origin = getPositionOnTerrain(origin);
-    origin.y += 5;
+    origin.y += 8;
     Mesh dog = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, origin, orientation, size);
-    dog.texture_id = textureInit("resources/textures/dog_texture.png");
+    dog.texture_id = textureInit("resources/textures/dog_texture_2.png");
     scene.insert({ "dog", dog });
 
     //loadOBJ("resources/Objects/sphere_tri_vnt.obj", vertices, indices);

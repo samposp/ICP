@@ -50,7 +50,7 @@ bool loadOBJ(const char* path, std::vector<Vertex>& vertices, std::vector<GLuint
 		}
 		else if (strcmp(lineHeader, "vt") == 0) {
 			glm::vec2 uv;
-			fscanf_s(file, "%f %f\n", &uv.y, &uv.x);
+			fscanf_s(file, "%f %f\n", &uv.x, &uv.y);
 			temp_uvs.push_back(uv);
 		}
 		else if (strcmp(lineHeader, "vn") == 0) {
