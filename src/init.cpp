@@ -34,16 +34,45 @@ void App::init_assets(void)
     std::vector<Vertex> vertices;
     std::vector<GLuint> indices;
 
-    // CREATE CUBE
-    glm::vec3 orientation = glm::vec3(10.0f);
-    glm::vec3 size = glm::vec3(10.0f);
-    glm::vec3 origin = glm::vec3((510.0f), 0.0f, 510.0f);
-    origin = getPositionOnTerrain(origin);
-    origin.y += 5;
+    // CREATE CUBES
+    float CUBE_SIZE = 10.0f;
+
+    glm::vec3 orientation = glm::vec3(0.0f);
+    glm::vec3 size = glm::vec3(CUBE_SIZE);
+    glm::vec3 origin = glm::vec3(0.0f, 0.0f, 0.0f);
     loadOBJ("resources/Objects/cube_tri_vnt.obj", vertices, indices);
-    Mesh cube = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, origin, orientation, size);
-    cube.texture_id = textureInit("resources/textures/box_rgb888.png");
-    scene.insert({ "cube", cube });
+    GLuint cubetexture = textureInit("resources/textures/box_rgb888.png");
+    int index = 0;
+
+    int floorCount = 2;
+
+    auto createCube = [&]() {
+        for (int j = 0; j < floorCount; j++) {
+            origin = getPositionOnTerrain(origin);
+            origin.y += 5 + j*CUBE_SIZE;
+            Mesh cube = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, origin, orientation, size);
+            cube.texture_id = cubetexture;
+            scene.insert({ "cube" + std::to_string(index++), cube });
+        }
+    };
+
+    for (int i = 0; i < 1024 / CUBE_SIZE; i++) {
+        origin.x += CUBE_SIZE;
+        createCube();
+    }
+    for (int i = 0; i < 1024 / CUBE_SIZE; i++) {
+        origin.z += CUBE_SIZE;
+        createCube();
+    }
+    for (int i = 0; i < 1024 / CUBE_SIZE; i++) {
+        origin.x -= CUBE_SIZE;
+        createCube();
+    }
+    for (int i = 0; i < 1024 / CUBE_SIZE; i++) {
+        origin.z -= CUBE_SIZE;
+        createCube();
+    }
+
     
 
     // TRANSPARENT CUBE
