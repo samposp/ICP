@@ -54,6 +54,8 @@ public:
     irrklang::ISoundEngine* engine = nullptr;
     irrklang::ISound* music = nullptr;
 
+    void move_dog(Mesh& m, float dog_speed, glm::vec3 player_pos);
+
     ~App();
 
 private:

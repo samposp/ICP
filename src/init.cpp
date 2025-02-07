@@ -72,8 +72,8 @@ void App::init_assets(void)
 
     // DOG
     loadOBJ("resources/Objects/dog_vn_added2_reduced.obj", vertices, indices);
-    orientation = glm::vec3(0.0f);
-    size = glm::vec3(6.0f);
+    orientation = glm::vec3(0.0f, 90.0f, 0.0f);
+    size = glm::vec3(4.0f);
     origin = glm::vec3(550.0f, 100.0f, 625.0f);
     origin = getPositionOnTerrain(origin);
     origin.y += 8;

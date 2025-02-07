@@ -142,6 +142,7 @@ int App::run(void)
             player_pos = getPositionOnTerrain(player_pos);
             player_pos.y += 20;
             camera.Position = player_pos;
+            std::cout << "Player_pos: " << player_pos.x << " " << player_pos.y << " " << player_pos.z << "\n";
 
             glm::vec3 player_look = camera.GetViewMatrix()[2];
             glm::vec3 player_up = camera.Up;
@@ -185,11 +186,15 @@ int App::run(void)
                 shader.setUniform("spotlight_on", spotlight_on);
             }
 
+            
             // FIRST PART - draw all non-transparent in any order
+            float dog_speed = delta_t * 14;
             for (auto& m : scene) {
                 if (!m.second.transparent) {
-                    Mesh mesh = m.second;
-                    mesh.draw();
+                    if (m.first == "dog") {
+                        move_dog(m.second, dog_speed, player_pos);
+                    }
+                    m.second.draw();
                 }
                 else
                     transparent.emplace_back(&m.second); // save pointer for painters algorithm
@@ -308,6 +313,28 @@ void App::update_projection_matrix(void)
         0.1f,                // Near clipping plane. Keep as big as possible, or you'll get precision issues.
         20000.0f             // Far clipping plane. Keep as little as possible.
     );
+}
+
+void App::move_dog(Mesh& m, float dog_speed, glm::vec3 player_pos) {
+    //std::cout << "Dog_pos: " << m.origin.x << " " << m.origin.y << " " << m.origin.z << "\n";
+    if (glm::round(player_pos.x - m.origin.x) >= 25) {
+        m.origin.x += dog_speed;
+        m.orientation.y = 90.0f;
+    }
+    else if (glm::round(player_pos.x - m.origin.x) <= -25) {
+        m.origin.x -= dog_speed;
+        m.orientation.y = 270.0f;
+    }
+    if (glm::round(player_pos.z - m.origin.z) >= 20) {
+        m.origin.z += dog_speed;
+        m.orientation.y = 0.0f;
+    }
+    else if (glm::round(player_pos.z - m.origin.z) <= -20) {
+        m.origin.z -= dog_speed;
+        m.orientation.y = 180.0f;
+    }
+    m.origin = getPositionOnTerrain(m.origin);
+    m.origin.y += 8;
 }
 
 
