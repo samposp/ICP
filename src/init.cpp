@@ -74,19 +74,54 @@ void App::init_assets(void)
     }
 
     
-
-    // TRANSPARENT CUBE
+    // FOUNTAIN OF TRANSPARENT CUBES
     orientation = glm::vec3(0.0f);
-    size = glm::vec3(10.0f);
-    origin = glm::vec3(300.0f, 10.0f, 500.0f);
-    origin = getPositionOnTerrain(origin);
-    origin.y += 5;
-    Mesh transparentCube = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, origin, orientation, size);
-    transparentCube.texture_id = textureInit("resources/textures/box_rgb888.png");
-    transparentCube.diffuse_color = glm::vec4(1.0f, 1.0f, 1.0f, 0.5f);
-    transparentCube.transparent = true;
-    scene.insert({ "transparentCube", transparentCube });
-    
+    size = glm::vec3(5.0f);
+    index = 0;
+
+    glm::vec3 basePosition = glm::vec3(530.0f, 0.0f, 470.0f);
+    basePosition = getPositionOnTerrain(basePosition);
+    basePosition.y += 5;
+    std::array<glm::vec3, 30> positions = {
+        glm::vec3(1.0f,0.0f,1.0f),
+        glm::vec3(1.0f,0.0f,0.0f),
+        glm::vec3(1.0f,0.0f,-1.0f),
+        glm::vec3(0.0f,0.0f,1.0f),
+        glm::vec3(0.0f,0.0f,0.0f),
+        glm::vec3(0.0f,0.0f,-1.0f),
+        glm::vec3(-1.0f,0.0f,1.0f),
+        glm::vec3(-1.0f,0.0f,0.0f),
+        glm::vec3(-1.0f,0.0f,-1.0f),
+        glm::vec3(-2.0f,1.0f,1.0f),
+        glm::vec3(-2.0f,1.0f,0.0f),
+        glm::vec3(-2.0f,1.0f,-1.0f),
+        glm::vec3(2.0f,1.0f,1.0f),
+        glm::vec3(2.0f,1.0f,0.0f),
+        glm::vec3(2.0f,1.0f,-1.0f),
+        glm::vec3(1.0f,1.0f,-2.0f),
+        glm::vec3(0.0f,1.0f,-2.0f),
+        glm::vec3(-1.0f,1.0f,-2.0f),
+        glm::vec3(1.0f,1.0f,2.0f),
+        glm::vec3(0.0f,1.0f,2.0f),
+        glm::vec3(-1.0f,1.0f,2.0f),
+        glm::vec3(0.0f,1.0f,0.0f),
+        glm::vec3(0.0f,2.0f,0.0f),
+        glm::vec3(0.0f,3.0f,0.0f),
+        glm::vec3(0.0f,4.0f,0.0f),
+        glm::vec3(0.0f,5.0f,0.0f),
+        glm::vec3(0.0f,4.0f,1.0f),
+        glm::vec3(0.0f,4.0f,-1.0f),
+        glm::vec3(1.0f,4.0f,0.0f),
+        glm::vec3(-1.0f,4.0f,0.0f),
+    };
+
+    for (glm::vec3 position : positions) {
+        origin = basePosition + (position*size);
+        Mesh transparentCube = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, origin, orientation, size);
+        transparentCube.texture_id = textureInit("resources/textures/glass.png");
+        transparentCube.transparent = true;
+        scene.insert({ "transparentCube" + std::to_string(index++), transparentCube });
+    }
 
     // TEAPOT WITH SOUND
     loadOBJ("resources/Objects/teapot_tri_vnt.obj", vertices, indices);

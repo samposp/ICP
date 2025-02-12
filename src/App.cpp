@@ -202,9 +202,7 @@ int App::run(void)
 
             // SECOND PART - draw only transparent - painter's algorithm (sort by distance from camera, from far to near)
             std::sort(transparent.begin(), transparent.end(), [&](Mesh const* a, Mesh const* b) {
-                glm::vec3 translation_a = glm::vec3(a->model_matrix[3]);  // get 3 values from last column of model matrix = translation
-                glm::vec3 translation_b = glm::vec3(b->model_matrix[3]);  // dtto for model B
-                return glm::distance(camera.Position, translation_a) < glm::distance(camera.Position, translation_b); // sort by distance from camera
+                return glm::distance(camera.Position, a->origin) > glm::distance(camera.Position, b->origin); // sort by distance from camera
                 });
 
             // set GL for transparent objects
