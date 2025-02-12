@@ -25,56 +25,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
-    <None Include="resources\video.mkv">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resources\Shaders\basic.frag">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="resources\Shaders\basic.vert">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="resources\Shaders\basic_core.frag">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="resources\Shaders\basic_core.vert">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="resources\Shaders\basic_uniform.frag">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="resources\Shaders\basic_uniform.vert">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
     <None Include="resources\Shaders\tex.frag">
       <Filter>Resource Files\Shaders</Filter>
     </None>
     <None Include="resources\Shaders\tex.vert">
       <Filter>Resource Files\Shaders</Filter>
     </None>
-    <None Include="resources\Shaders\directional.frag">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="resources\Shaders\directional.vert">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="resources\Shaders\parametrized,many,COMPAT-OLD.frag">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Resource\lightbulb.jpg">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="Resource\HSV-MAP.png">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="resources\red_cup.jpg">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="resources\textures\box.png">
-      <Filter>Resource Files\Textures</Filter>
-    </Image>
     <Image Include="resources\textures\box_rgb888.png">
       <Filter>Resource Files\Textures</Filter>
     </Image>
@@ -84,16 +42,16 @@
     <Image Include="resources\textures\tex_256.png">
       <Filter>Resource Files\Textures</Filter>
     </Image>
-    <Image Include="resources\textures\tex_1024.jpg">
+    <Image Include="resources\textures\dog_texture.png">
       <Filter>Resource Files\Textures</Filter>
     </Image>
-    <Image Include="resources\textures\tex_2048.png">
+    <Image Include="resources\textures\dog_texture_2.png">
       <Filter>Resource Files\Textures</Filter>
     </Image>
-    <Image Include="resources\textures\tex_2048_b.png">
+    <Image Include="resources\textures\glass.png">
       <Filter>Resource Files\Textures</Filter>
     </Image>
-    <Image Include="resources\textures\TextureDouble_A.png">
+    <Image Include="resources\textures\pot_texture.jpg">
       <Filter>Resource Files\Textures</Filter>
     </Image>
   </ItemGroup>

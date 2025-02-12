@@ -144,31 +144,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="README.md" />
-    <None Include="resources\Shaders\basic.frag" />
-    <None Include="resources\Shaders\basic.vert" />
-    <None Include="resources\Shaders\basic_core.frag" />
-    <None Include="resources\Shaders\basic_core.vert" />
-    <None Include="resources\Shaders\basic_uniform.frag" />
-    <None Include="resources\Shaders\basic_uniform.vert" />
-    <None Include="resources\Shaders\directional.frag" />
-    <None Include="resources\Shaders\directional.vert" />
-    <None Include="resources\Shaders\parametrized,many,COMPAT-OLD.frag" />
     <None Include="resources\Shaders\tex.frag" />
     <None Include="resources\Shaders\tex.vert" />
-    <None Include="resources\video.mkv" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="resources\red_cup.jpg" />
-    <Image Include="resources\textures\box.png" />
     <Image Include="resources\textures\box_rgb888.png" />
+    <Image Include="resources\textures\dog_texture.png" />
+    <Image Include="resources\textures\dog_texture_2.png" />
+    <Image Include="resources\textures\glass.png" />
     <Image Include="resources\textures\heights.png" />
-    <Image Include="resources\textures\TextureDouble_A.png" />
-    <Image Include="resources\textures\tex_1024.jpg" />
-    <Image Include="resources\textures\tex_2048.png" />
-    <Image Include="resources\textures\tex_2048_b.png" />
+    <Image Include="resources\textures\pot_texture.jpg" />
     <Image Include="resources\textures\tex_256.png" />
-    <Image Include="Resource\HSV-MAP.png" />
-    <Image Include="Resource\lightbulb.jpg" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="resources\haarcascade_frontalface_default.xml" />

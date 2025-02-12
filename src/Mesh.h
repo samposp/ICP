@@ -81,7 +81,7 @@ public:
 
 
     
-    void draw(glm::vec3 const& offset = glm::vec3(0.0f), glm::vec3 const& rotation = glm::vec3(0.0f), glm::vec3 const& scale = glm::vec3(1.0f)) {
+    void draw() {
  		if (VAO == 0) {
 			std::cerr << "VAO not initialized!\n";
 			return;
@@ -95,14 +95,7 @@ public:
         glm::mat4 rz = glm::rotate(glm::mat4(1.0f), glm::radians(orientation.z), glm::vec3(0.0f, 0.0f, 1.0f));
         glm::mat4 s = glm::scale(glm::mat4(1.0f), size);
 
-        glm::mat4 m_off = glm::translate(glm::mat4(1.0f), offset);
-        glm::mat4 m_rx = glm::rotate(glm::mat4(1.0f), rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-        glm::mat4 m_ry = glm::rotate(glm::mat4(1.0f), rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 m_rz = glm::rotate(glm::mat4(1.0f), rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-        glm::mat4 m_s = glm::scale(glm::mat4(1.0f), scale);
-
-        //model_matrix =   rz * ry * rx * t * s * m_s * m_rz * m_ry * m_rx * m_off;
-        model_matrix = t * s * rx * ry * rz * m_off * m_rx * m_ry * m_rz * m_s;
+        model_matrix = t * s * rx * ry * rz;
 
         shader.setUniform("uM_m", model_matrix);
 
@@ -121,13 +114,11 @@ public:
         texture_id = 0;
         primitive_type = GL_POINT;
         // TODO: clear rest of the member variables to safe default
-        
 
         shader.clear();
         glDeleteBuffers(1, &VBO);
         glDeleteBuffers(1, &EBO);
         glDeleteVertexArrays(1, &VAO);
-
         
     };
 
