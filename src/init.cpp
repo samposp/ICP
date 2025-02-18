@@ -125,11 +125,9 @@ void App::init_assets(void)
 
     // TEAPOT WITH SOUND
     loadOBJ("resources/Objects/teapot_tri_vnt.obj", vertices, indices);
-    orientation = glm::vec3(-25.0f);
-    origin = glm::vec3(515.0f, 100.0f, 526.0f);
-    size = glm::vec3(1.5f);
-    origin = getPositionOnTerrain(origin);
-    origin.y += 5;
+    orientation = glm::vec3(0.0f, 0.0f, -30.0f);
+    origin = glm::vec3(530.0f, 158.0f, 470.0f);
+    size = glm::vec3(1.0f);
     Mesh teapot = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, origin, orientation, size);
     teapot.texture_id = textureInit("resources/textures/pot_texture.jpg");
     scene.insert({ "teapot", teapot });

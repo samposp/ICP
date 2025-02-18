@@ -142,7 +142,7 @@ int App::run(void)
             player_pos = getPositionOnTerrain(player_pos);
             player_pos.y += 20;
             camera.Position = player_pos;
-            std::cout << "Player_pos: " << player_pos.x << " " << player_pos.y << " " << player_pos.z << "\n";
+            //std::cout << "Player_pos: " << player_pos.x << " " << player_pos.y << " " << player_pos.z << "\n";
 
             glm::vec3 player_look = camera.GetViewMatrix()[2];
             glm::vec3 player_up = camera.Up;
@@ -191,7 +191,7 @@ int App::run(void)
             float dog_speed = delta_t * 14;
             for (auto& m : scene) {
                 if (!m.second.transparent) {
-                    if (m.first == "dog") {
+                    if (m.first == "dog" and stopApp == false) {
                         move_dog(m.second, dog_speed, player_pos);
                     }
                     m.second.draw();
