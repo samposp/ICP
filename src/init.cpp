@@ -143,6 +143,17 @@ void App::init_assets(void)
     dog.texture_id = textureInit("resources/textures/dog_texture_2.png");
     scene.insert({ "dog", dog });
 
+    loadOBJ("resources/Objects/zombie_dog.obj", vertices, indices);
+    orientation = glm::vec3(0.0f);
+    size = glm::vec3(0.15f);
+    origin = glm::vec3(20.0f, 100.0f, 20.0f);
+    origin = getPositionOnTerrain(origin);
+    origin.y += 3;
+    Mesh zombie_dog = Mesh(GL_TRIANGLES, shaders[0], vertices, indices, origin, orientation, size);
+    zombie_dog.texture_id = textureInit("resources/textures/zombie_dog_texture.png");
+    scene.insert({ "zombie_dog", zombie_dog });
+
+
     //loadOBJ("resources/Objects/sphere_tri_vnt.obj", vertices, indices);
     //size = glm::vec3(100.0f);
     //origin = glm::vec3(-5.0f, 0.0f, 0.0f);

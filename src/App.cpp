@@ -194,6 +194,10 @@ int App::run(void)
                     if (m.first == "dog" and stopApp == false) {
                         move_dog(m.second, dog_speed, player_pos);
                     }
+                    if (m.first == "zombie_dog") {
+                        move_zombie_dog(m.second, 2.25 * dog_speed);
+                    }
+        
                     m.second.draw();
                 }
                 else
@@ -333,6 +337,38 @@ void App::move_dog(Mesh& m, float dog_speed, glm::vec3 player_pos) {
     }
     m.origin = getPositionOnTerrain(m.origin);
     m.origin.y += 8;
+}
+
+void App::move_zombie_dog(Mesh& m, float dog_speed) {
+    std::cout << "Zombie_pos: " << m.origin.x << " " << m.origin.y << " " << m.origin.z << "\n";
+    if (!go_back) {
+        if (m.origin.z < 980.0f) {
+            m.origin.z += dog_speed;
+        }
+        else if (m.origin.x < 980.0f) {
+            m.origin.x += dog_speed;
+            m.orientation.y = 90.0f;
+        }
+        else {
+            go_back = true;
+            m.orientation.y = 180.0f;
+        }
+    }
+    else {
+        if (m.origin.z > 20.0f) {
+            m.origin.z -= dog_speed;
+        }
+        else if (m.origin.x > 20.0f) {
+            m.origin.x -= dog_speed;
+            m.orientation.y = 270.0f;
+        }
+        else {
+            go_back = false;
+            m.orientation.y = 0.0f;
+        }
+    }
+    m.origin = getPositionOnTerrain(m.origin);
+    m.origin.y += 3;
 }
 
 

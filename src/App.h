@@ -55,6 +55,8 @@ public:
     irrklang::ISound* music = nullptr;
 
     void move_dog(Mesh& m, float dog_speed, glm::vec3 player_pos);
+    void move_zombie_dog(Mesh& m, float dog_speed);
+    bool go_back = false;
 
     ~App();
 
