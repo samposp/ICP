@@ -44,6 +44,16 @@ public:
     static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
     static void fbsize_callback(GLFWwindow* window, int width, int height);
     static void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos);
+
+    void fullscreen_switch();
+    bool is_fullscreen = false;
+    int window_pos_x;
+    int window_pos_y;
+    int windowed_width = 800;
+    int windowed_height = 600;
+    GLFWmonitor* monitor;
+    const GLFWvidmode* mode;
+
     void update_projection_matrix(void);
     GLuint gen_tex(cv::Mat& image);
     GLuint textureInit(const std::filesystem::path& file_name);

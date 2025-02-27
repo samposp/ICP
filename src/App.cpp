@@ -237,6 +237,7 @@ int App::run(void)
                 ImGui::Text("C to show/hide cursor");
                 ImGui::Text("M to mute sound");
                 ImGui::Text("L to toggle spotlight");
+                ImGui::Text("F to toggle fullscreen");
                 ImGui::End();
             }
 
@@ -340,7 +341,7 @@ void App::move_dog(Mesh& m, float dog_speed, glm::vec3 player_pos) {
 }
 
 void App::move_zombie_dog(Mesh& m, float dog_speed) {
-    std::cout << "Zombie_pos: " << m.origin.x << " " << m.origin.y << " " << m.origin.z << "\n";
+    //std::cout << "Zombie_pos: " << m.origin.x << " " << m.origin.y << " " << m.origin.z << "\n";
     if (!go_back) {
         if (m.origin.z < 980.0f) {
             m.origin.z += dog_speed;

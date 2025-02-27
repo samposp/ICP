@@ -80,6 +80,10 @@ void App::key_callback(GLFWwindow* window, int key, int scancode, int action, in
             }
             break;
         }
+        case GLFW_KEY_F: { // TOGGLE FULLSCREEN/WINDOW
+            this_inst->fullscreen_switch();
+            break;
+        }
         default:
             break;
         }
@@ -106,5 +110,22 @@ void App::cursorPositionCallback(GLFWwindow* window, double xpos, double ypos) {
     app->camera.ProcessMouseMovement(xpos - app->cursorLastX, (ypos - app->cursorLastY) * -1.0);
     app->cursorLastX = xpos;
     app->cursorLastY = ypos;
+    }
+}
+
+void App::fullscreen_switch() {
+    is_fullscreen = !is_fullscreen;
+
+    if (is_fullscreen) {
+        glfwGetWindowPos(window, &window_pos_x, &window_pos_y);
+        glfwGetWindowSize(window, &width, &height);
+
+        monitor = glfwGetPrimaryMonitor();
+        mode = glfwGetVideoMode(monitor);
+
+        glfwSetWindowMonitor(window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+    }
+    else {
+        glfwSetWindowMonitor(window, nullptr, window_pos_x, window_pos_y, windowed_width, windowed_height, GLFW_DONT_CARE);
     }
 }
