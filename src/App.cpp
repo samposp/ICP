@@ -197,6 +197,9 @@ int App::run(void)
                     if (m.first == "zombie_dog") {
                         move_zombie_dog(m.second, 2.25 * dog_speed);
                     }
+                    if (m.first == "teapot") {
+                        m.second.orientation += glm::vec3(0.0f, 0.5f, 0.0f);
+                    }
         
                     m.second.draw();
                 }
